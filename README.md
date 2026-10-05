@@ -4,7 +4,7 @@ This is an interactive, browser-based demo of rotational motion. It covers angul
 
 Created by **Claude Opus 5.5**, based on the lecture notes by **Sang Hoon Lee (이상훈)**.
 
-> **한국어 요약:** 회전 운동학, 선변수와 각변수, 회전관성, 여러 모양의 회전관성, 평행축 정리, 토크와 τ = Iα, 질량이 있는 도르래, 일과 회전운동에너지, 굴림운동, 경사면 굴림 경주, 각운동량 보존, 자이로스코프의 축돌기 운동을 직접 조작해 볼 수 있는 인터랙티브 웹 데모입니다. 이상훈(Sang Hoon Lee)의 강의 노트를 바탕으로 Claude Opus 5.5가 만들었습니다. 한국어 페이지는 `rotation-ko.html`입니다.
+> **한국어 요약:** 회전 운동, 선변수와 각변수, 회전관성, 여러 모양의 회전관성, 평행축 정리, 토크와 τ = Iα, 질량이 있는 도르래, 일과 회전운동에너지, 굴림운동, 경사면 굴림 경주, 각운동량 보존, 자이로스코프의 축돌기 운동을 직접 조작해 볼 수 있는 인터랙티브 웹 데모입니다. 이상훈(Sang Hoon Lee)의 강의 노트를 바탕으로 Claude Opus 5.5가 만들었습니다. 한국어 페이지는 `rotation-ko.html`입니다.
 
 ## Files
 

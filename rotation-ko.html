@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>회전운동</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8FB; --grid:#E1E8F0; --ink:#1A2433; --muted:#5B6779; --panel:#FFFFFF; --line:#C8D2DE;
+  --cyan:#5DEBEE; --magenta:#E55ADC; --red:#DE3127; --blue:#2B46D4; --green:#18924A;
+  --copper:#C9773F;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#132039; --grid:#1B2B48; --ink:#E7EDF6; --muted:#9DAAC0; --panel:#192946; --line:#2D4064;
+    --cyan:#47DDE1; --magenta:#F07AE8; --red:#FF5B4F; --blue:#93A6FF; --green:#4FD27F; --copper:#E39461;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#132039; --grid:#1B2B48; --ink:#E7EDF6; --muted:#9DAAC0; --panel:#192946; --line:#2D4064;
+  --cyan:#47DDE1; --magenta:#F07AE8; --red:#FF5B4F; --blue:#93A6FF; --green:#4FD27F; --copper:#E39461;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px)}
+body{
+  margin:0; color:var(--ink); background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;
+  font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:17px; line-height:1.62; -webkit-font-smoothing:antialiased;
+}
+i,.m{font-style:italic}
+sub{font-size:.7em}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--magenta);outline-offset:2px;border-radius:3px}
+
+/* nav */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1080px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:18px}
+.toc{display:flex;gap:4px;overflow-x:auto;flex:1;scrollbar-width:none}
+.toc::-webkit-scrollbar{display:none}
+.toc a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:14px;padding:4px 9px;border-radius:6px}
+.toc a:hover{color:var(--ink);background:var(--grid)}
+.toc a span{color:var(--blue);font-weight:700;margin-right:4px}
+.langlink{flex:none;font-size:14px;padding:4px 12px;border:1.5px solid var(--ink);border-radius:8px;color:var(--ink);text-decoration:none}
+.langlink:hover{background:var(--ink);color:var(--paper)}
+
+/* hero */
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.hero{padding:56px 0 28px}
+.credit{font-size:15px;color:var(--muted);margin:0 0 18px;max-width:60ch}
+.credit b{color:var(--ink);font-weight:500}
+h1{font-size:clamp(40px,7vw,78px);line-height:1.04;letter-spacing:-.02em;margin:0;font-weight:700;max-width:14ch}
+.hero p.sub{font-size:19px;max-width:56ch;margin:18px 0 0}
+.hero-wire{width:100%;height:auto;display:block;margin-top:34px}
+.scrawl{color:var(--blue);font-size:15px;font-weight:500;line-height:1.5;border-left:3px solid currentColor;padding:2px 0 2px 12px;max-width:52ch}
+
+/* sections */
+section{padding:56px 0 24px;border-top:1px dashed var(--line)}
+h2{font-size:clamp(26px,3.6vw,36px);line-height:1.15;margin:0 0 14px;letter-spacing:-.01em;display:flex;gap:14px;align-items:baseline}
+h2 .n{font-size:.62em;color:var(--blue);border:2px solid var(--blue);border-radius:50%;width:1.7em;height:1.7em;display:inline-grid;place-items:center;flex:none;transform:translateY(-.15em)}
+.prose{max-width:68ch}
+.prose p{margin:0 0 12px}
+.key{display:inline-flex;flex-wrap:wrap;gap:10px 34px;align-items:center;border:6px solid var(--cyan);border-radius:5px;padding:12px 22px;margin:8px 0 22px;font-size:19px;background:var(--panel)}
+.key span{white-space:nowrap}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em;line-height:1.15;margin:0 2px}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 3px}
+
+.sim{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(250px,1fr);gap:18px;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:18px}
+@media (max-width:820px){.sim{grid-template-columns:1fr}}
+.viz{min-width:0;display:flex;flex-direction:column;gap:12px}
+.viz svg,.viz canvas{width:100%;display:block}
+.controls{display:flex;flex-direction:column;gap:12px;min-width:0}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:15px}
+.ctl output{font-variant-numeric:tabular-nums;font-weight:500}
+input[type=range]{width:100%;accent-color:var(--blue);margin:4px 0 0}
+select{font:inherit;font-size:15px;width:100%;padding:6px 8px;border-radius:7px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.btn{font:inherit;font-size:14px;padding:5px 11px;border-radius:7px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{border-color:var(--blue);background:var(--blue);color:var(--panel)}
+.check{display:flex;gap:8px;align-items:center;font-size:15px;cursor:pointer}
+.check input{accent-color:var(--blue);width:17px;height:17px}
+.lbl{font-size:15px;margin-bottom:4px;display:block}
+dl.read{display:grid;grid-template-columns:1fr auto;gap:5px 12px;margin:4px 0 0;font-size:15px;border-top:1px solid var(--line);padding-top:10px}
+dl.read dt{color:var(--muted)}
+dl.read dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.verdict{font-size:15px;padding:8px 12px;border-radius:8px;border-left:5px solid var(--magenta);background:color-mix(in srgb,var(--magenta) 10%,transparent)}
+.aside{margin-top:18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:820px){.aside{grid-template-columns:1fr}}
+.boxed{border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--panel);font-size:16px}
+.boxed h3{margin:0 0 6px;font-size:17px}
+
+.mag{color:var(--magenta)}
+.bars{display:flex;flex-direction:column;gap:7px;font-size:14px}
+.bar-row{display:grid;grid-template-columns:minmax(0,1fr) 72px;gap:8px;align-items:center}
+.bar-track{height:14px;background:var(--grid);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;transition:width .15s}
+.bar-row .v{text-align:right;font-variant-numeric:tabular-nums}
+.bar-cap{grid-column:1/-1;color:var(--muted);margin-bottom:-4px}
+table.tbl{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl th{color:var(--muted);font-weight:500}
+.eq{font-size:16px;line-height:1.7}
+.eq .sum{font-weight:700}
+.small{font-size:14px;color:var(--muted)}
+footer{padding:40px 0 60px;border-top:1px dashed var(--line);margin-top:40px;color:var(--muted);font-size:15px}
+svg text{font-family:"IBM Plex Sans KR",system-ui,sans-serif;fill:var(--ink)}
+svg .wire{stroke:var(--ink);stroke-width:2.2;fill:none;stroke-linejoin:round}
+svg .flow{stroke:var(--red);stroke-width:5;fill:none;stroke-linecap:round;stroke-dasharray:0.1 15}
+svg .axis{stroke:var(--muted);stroke-width:1.2}
+svg .gridl{stroke:var(--grid);stroke-width:1}
+@media (prefers-reduced-motion:reduce){.bar-fill{transition:none}}
+
+.hero-curve{width:100%;height:auto;display:block;margin-top:30px}
+.hero-curve .q{stroke:var(--blue);stroke-width:3.5;fill:none;stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 2.6s cubic-bezier(.3,.6,.4,1) .3s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.hero-curve .q{animation:none;stroke-dashoffset:0}}
+.stack{display:flex;height:16px;border-radius:4px;overflow:hidden;background:var(--grid)}
+.stack div{height:100%;transition:width .08s linear}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;color:var(--muted)}
+.legend i.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;font-style:normal}
+.pill{font-size:14px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--blue) 10%,transparent);border-left:4px solid var(--blue)}
+.sim.one{grid-template-columns:minmax(0,1fr) minmax(250px,.8fr)}
+@media (max-width:820px){.sim.one{grid-template-columns:1fr}}
+
+.sqrt{display:inline-block;position:relative;padding-left:.6em;margin-left:.06em;white-space:nowrap}
+.sqrt::before{content:"";position:absolute;left:0;top:0;bottom:.02em;width:.63em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 24' preserveAspectRatio='none'%3E%3Cpath d='M0 14.2L3.4 12.3L6.9 20.1L11 0H12V1.5H11.95L7.5 23.6H6.3L2.8 15.3L.7 16.3Z'/%3E%3C/svg%3E") no-repeat 0 0/100% 100%;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 24' preserveAspectRatio='none'%3E%3Cpath d='M0 14.2L3.4 12.3L6.9 20.1L11 0H12V1.5H11.95L7.5 23.6H6.3L2.8 15.3L.7 16.3Z'/%3E%3C/svg%3E") no-repeat 0 0/100% 100%}
+.sqrt>span{display:inline-block;border-top:.075em solid currentColor;padding:.1em .1em 0 .05em;line-height:1.15}
+.ss{display:inline-block;vertical-align:-.3em;line-height:1;font-size:.72em;margin-left:.03em;text-align:left}
+.ss>sup,.ss>sub{display:block;vertical-align:0;font-size:1em;line-height:1.08;position:static}
+
+.hero-ro{width:100%;height:auto;display:block;margin-top:24px}
+.toc a{padding:4px 7px}
+.btnrow{display:flex;gap:6px;flex-wrap:wrap}
+.ctl.off{opacity:.4;pointer-events:none}
+.key{max-width:100%}
+sub{padding-right:.07em}
+@media (max-width:600px){.key>span{white-space:normal;min-width:0}}
+table.ana{border-collapse:collapse;width:100%;max-width:760px;margin:14px 0;font-size:15px}
+table.ana th,table.ana td{border-bottom:1px solid var(--line);padding:6px 10px;text-align:left}
+table.ana th{color:var(--muted);font-weight:500}
+.tablewrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<nav class="bar" aria-label="Sections"><div class="bar-in"><div class="toc" id="toc"></div>
+<a class="langlink" href="rotation-en.html" hreflang="en" lang="en">English</a></div></nav>
+
+<header class="wrap hero">
+  <p class="credit" data-i18n="credit"></p>
+  <h1 data-i18n="title"></h1>
+  <p class="sub" data-i18n="subtitle"></p>
+  <svg class="hero-ro" id="hero" viewBox="0 0 1000 200" aria-hidden="true"></svg>
+</header>
+
+<main class="wrap">
+
+<section id="s1"><h2><span class="n">1</span><span data-i18n="h1"></span></h2>
+  <div class="prose"><p data-i18n="p1a"></p><p data-i18n="p1b"></p></div>
+  <div class="key"><span><i>θ</i> = <span class="frac"><span><i>s</i></span><span><i>r</i></span></span></span><span><i>ω</i> = <span class="frac"><span>d<i>θ</i></span><span>d<i>t</i></span></span>, &nbsp;<i>α</i> = <span class="frac"><span>d<i>ω</i></span><span>d<i>t</i></span></span> = <span class="frac"><span>d<sup>2</sup><i>θ</i></span><span>d<i>t</i><sup>2</sup></span></span></span><span><i>ω</i> = <i>ω</i><sub>0</sub> + <i>αt</i></span><span><i>θ</i> = <i>θ</i><sub>0</sub> + <i>ω</i><sub>0</sub><i>t</i> + (1/2)<i>αt</i><sup>2</sup></span><span><i>ω</i><sup>2</sup> = <i>ω</i><span class='ss'><sup>2</sup><sub>0</sub></span> + 2<i>α</i>(<i>θ</i> − <i>θ</i><sub>0</sub>)</span></div>
+  <div class="sim"><div class="viz"><svg id="v1" viewBox="0 0 440 360" role="img" aria-label="A disk turning with constant angular acceleration"></svg></div><div class="controls" id="c1"></div></div>
+</section>
+
+<section id="s2"><h2><span class="n">2</span><span data-i18n="h2"></span></h2>
+  <div class="prose"><p data-i18n="p2"></p></div>
+  <div class="key"><span><i>s</i> = <i>θr</i></span><span><i>v</i> = <i>ωr</i></span><span><i>T</i> = <span class="frac"><span>2π<i>r</i></span><span><i>v</i></span></span> = <span class="frac"><span>2π</span><span><i>ω</i></span></span></span><span><i>a</i><sub>t</sub> = <i>αr</i></span><span><i>a</i><sub>r</sub> = <span class="frac"><span><i>v</i><sup>2</sup></span><span><i>r</i></span></span> = <i>ω</i><sup>2</sup><i>r</i></span></div>
+  <div class="sim"><div class="viz"><svg id="v2" viewBox="0 0 440 300" role="img" aria-label="Velocity and acceleration of a point on a turning body"></svg></div><div class="controls" id="c2"></div></div>
+</section>
+
+<section id="s3"><h2><span class="n">3</span><span data-i18n="h3"></span></h2>
+  <div class="prose"><p data-i18n="p3a"></p><p data-i18n="p3b"></p></div>
+  <div class="key"><span><i>K</i> = Σ(1/2)<i>m<sub>i</sub>v<sub>i</sub></i><sup>2</sup> = (1/2)(Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup>)<i>ω</i><sup>2</sup></span><span><i>I</i> = Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup></span><span><i>K</i> = (1/2)<i>Iω</i><sup>2</sup></span><span><i>I</i> = ∫<i>r</i><sup>2</sup> d<i>m</i></span></div>
+  <div class="sim"><div class="viz"><svg id="v3" viewBox="0 0 440 260" role="img" aria-label="Two masses on a light rod turning about an axis"></svg></div><div class="controls" id="c3"></div></div>
+</section>
+
+<section id="s4"><h2><span class="n">4</span><span data-i18n="h4"></span></h2>
+  <div class="prose"><p data-i18n="p4"></p></div>
+  <div class="key"><span><i>I</i><sub>rod, center</sub> = ∫<span class='ss'><sup><i>L</i>/2</sup><sub>−<i>L</i>/2</sub></span> <i>x</i><sup>2</sup><span class="frac"><span><i>M</i></span><span><i>L</i></span></span>d<i>x</i> = <span class="frac"><span>1</span><span>12</span></span><i>ML</i><sup>2</sup></span></div>
+  <div class="sim"><div class="viz"><svg id="v4" viewBox="0 0 440 280" role="img" aria-label="Rotational inertia of common shapes"></svg></div><div class="controls" id="c4"></div></div>
+</section>
+
+<section id="s5"><h2><span class="n">5</span><span data-i18n="h5"></span></h2>
+  <div class="prose"><p data-i18n="p5"></p></div>
+  <div class="key"><span><i>I′</i> = ∫(<b>r</b> + Δ<b>r</b>) · (<b>r</b> + Δ<b>r</b>) d<i>m</i> = <i>I</i> + 2Δ<b>r</b> · ∫<b>r</b> d<i>m</i> + <i>m</i>Δ<i>r</i><sup>2</sup></span><span><i>I</i> = <i>I</i><sub>com</sub> + <i>Md</i><sup>2</sup> ≥ <i>I</i><sub>com</sub></span></div>
+  <div class="sim"><div class="viz"><svg id="v5" viewBox="0 0 440 300" role="img" aria-label="The parallel-axis theorem"></svg></div><div class="controls" id="c5"></div></div>
+</section>
+
+<section id="s6"><h2><span class="n">6</span><span data-i18n="h6"></span></h2>
+  <div class="prose"><p data-i18n="p6a"></p><p data-i18n="p6b"></p></div>
+  <div class="key"><span>|<b>τ</b>| = <i>rF</i> sin <i>φ</i></span><span><b>τ</b> = <b>r</b> × <b>F</b> = (<i>yF</i><sub>z</sub> − <i>zF</i><sub>y</sub>, <i>zF</i><sub>x</sub> − <i>xF</i><sub>z</sub>, <i>xF</i><sub>y</sub> − <i>yF</i><sub>x</sub>)</span><span><i>τ</i> = Σ<i>r<sub>i</sub>F<sub>i</sub></i> = (Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup>)<i>α</i> = <i>Iα</i></span></div>
+  <div class="sim"><div class="viz"><svg id="v6" viewBox="0 0 440 270" role="img" aria-label="Torque from a force on a lever"></svg></div><div class="controls" id="c6"></div></div>
+</section>
+
+<section id="s7"><h2><span class="n">7</span><span data-i18n="h7"></span></h2>
+  <div class="prose"><p data-i18n="p7"></p></div>
+  <div class="key"><span><i>mg</i> − <i>T</i> = <i>ma</i></span><span><i>TR</i> = (1/2)<i>MR</i><sup>2</sup><i>α</i></span><span><i>a</i> = <i>Rα</i></span><span><i>a</i> = <span class="frac"><span>2<i>m</i></span><span><i>M</i> + 2<i>m</i></span></span><i>g</i></span><span><i>T</i> = <span class="frac"><span><i>Mm</i></span><span><i>M</i> + 2<i>m</i></span></span><i>g</i></span></div>
+  <div class="sim"><div class="viz"><svg id="v7" viewBox="0 0 440 290" role="img" aria-label="A block hanging from a massive pulley"></svg></div><div class="controls" id="c7"></div></div>
+</section>
+
+<section id="s8"><h2><span class="n">8</span><span data-i18n="h8"></span></h2>
+  <div class="prose"><p data-i18n="p8"></p></div>
+  <div class="key"><span><i>W</i> = ∫<span class='ss'><sup><i>θ</i><sub>f</sub></sup><sub><i>θ</i><sub>i</sub></sub></span> <i>τ</i> d<i>θ</i></span><span>Δ<i>K</i> = (1/2)<i>Iω</i><span class='ss'><sup>2</sup><sub>f</sub></span> − (1/2)<i>Iω</i><span class='ss'><sup>2</sup><sub>i</sub></span> = <i>W</i></span><span><i>P</i> = <span class="frac"><span>d<i>W</i></span><span>d<i>t</i></span></span> = <i>τω</i></span><span><i>τ</i> d<i>θ</i> = <i>F</i> cos <i>φ′</i> d<i>s</i> = <b>F</b> · d<b>s</b></span></div>
+  <div class="tablewrap"><table class="ana" id="ana"></table></div>
+  <div class="sim"><div class="viz"><svg id="v8" viewBox="0 0 440 230" role="img" aria-label="A constant torque spinning up a wheel"></svg><div class="bars" id="bars8"></div></div><div class="controls" id="c8"></div></div>
+</section>
+
+<section id="s9"><h2><span class="n">9</span><span data-i18n="h9"></span></h2>
+  <div class="prose"><p data-i18n="p9a"></p><p data-i18n="p9b"></p></div>
+  <div class="key"><span><i>s</i> = <i>θR</i></span><span><i>v</i><sub>com</sub> = <span class="frac"><span>d<i>s</i></span><span>d<i>t</i></span></span> = <i>ωR</i></span><span><i>I</i><sub>P</sub> = <i>I</i><sub>com</sub> + <i>MR</i><sup>2</sup></span><span><i>K</i> = (1/2)<i>I</i><sub>com</sub><i>ω</i><sup>2</sup> + (1/2)<i>Mv</i><span class='ss'><sup>2</sup><sub>com</sub></span></span></div>
+  <div class="sim"><div class="viz"><svg id="v9" viewBox="0 0 440 260" role="img" aria-label="Velocities of points on a rolling wheel"></svg><div class="bars" id="bars9"></div></div><div class="controls" id="c9"></div></div>
+</section>
+
+<section id="s10"><h2><span class="n">10</span><span data-i18n="h10"></span></h2>
+  <div class="prose"><p data-i18n="p10a"></p><p data-i18n="p10b"></p></div>
+  <div class="key"><span><i>Mg</i> sin <i>θ</i> − <i>f</i><sub>s</sub> = <i>Ma</i><sub>com</sub></span><span><i>Rf</i><sub>s</sub> = <i>I</i><sub>com</sub><i>α</i> = <i>I</i><sub>com</sub><span class="frac"><span><i>a</i><sub>com</sub></span><span><i>R</i></span></span></span><span><i>a</i><sub>com</sub> = <span class="frac"><span><i>g</i> sin <i>θ</i></span><span>1 + <i>I</i><sub>com</sub>/<i>MR</i><sup>2</sup></span></span></span></div>
+  <div class="sim"><div class="viz"><svg id="v10" viewBox="0 0 440 280" role="img" aria-label="A race of rolling objects down an incline"></svg></div><div class="controls" id="c10"></div></div>
+</section>
+
+<section id="s11"><h2><span class="n">11</span><span data-i18n="h11"></span></h2>
+  <div class="prose"><p data-i18n="p11a"></p><p data-i18n="p11b"></p></div>
+  <div class="key"><span><b>ℓ</b> = <b>r</b> × <b>p</b>, &nbsp;|<b>ℓ</b>| = <i>rp</i> sin <i>θ</i></span><span><b>τ</b> = <span class="frac"><span>d<b>ℓ</b></span><span>d<i>t</i></span></span></span><span><b>τ</b><sub>net</sub> = <span class="frac"><span>d<b>L</b></span><span>d<i>t</i></span></span></span><span><b>L</b> = <i>I</i><b>ω</b></span><span><i>I</i><sub>i</sub><i>ω</i><sub>i</sub> = <i>I</i><sub>f</sub><i>ω</i><sub>f</sub></span></div>
+  <div class="sim"><div class="viz"><svg id="v11" viewBox="0 0 440 280" role="img" aria-label="A spinning person pulling in two dumbbells"></svg><div class="bars" id="bars11"></div></div><div class="controls" id="c11"></div></div>
+</section>
+
+<section id="s12"><h2><span class="n">12</span><span data-i18n="h12"></span></h2>
+  <div class="prose"><p data-i18n="p12"></p></div>
+  <div class="key"><span><i>L</i> = <i>Iω</i></span><span><b>τ</b> = <span class="frac"><span>d<b>L</b></span><span>d<i>t</i></span></span>, &nbsp;<i>Mgr</i> = <span class="frac"><span>d<i>L</i></span><span>d<i>t</i></span></span></span><span>d<i>L</i> = <i>L</i> d<i>ϕ</i></span><span><i>Ω</i> = <span class="frac"><span>d<i>ϕ</i></span><span>d<i>t</i></span></span> = <span class="frac"><span><i>Mgr</i></span><span><i>Iω</i></span></span></span></div>
+  <div class="sim"><div class="viz"><svg id="v12" viewBox="0 0 440 300" role="img" aria-label="A precessing gyroscope"></svg></div><div class="controls" id="c12"></div></div>
+</section>
+</main>
+<footer class="wrap"><p data-i18n="credit"></p></footer>
+
+<script>
+const I18N={
+ko:{
+ nav:["회전 운동학","선변수와 각변수","회전관성","여러 모양","평행축 정리","토크","τ = Iα","일과 일률","굴림운동","경사면 굴림","각운동량","자이로스코프"],
+ credit:"<b>이상훈(Sang Hoon Lee)</b>의 강의 노트를 바탕으로 <b>Claude Opus 5.5</b>가 만들었습니다.",
+ title:"회전운동",
+ subtitle:"각변수, 회전관성, 토크, 굴림운동, 각운동량을 병진운동의 대응 개념과 나란히 직접 만져 보는 인터랙티브 데모입니다. 조절 막대를 움직이면 화면의 모든 값이 바로 다시 계산됩니다.",
+ play:"재생",pause:"일시정지",reset:"다시 시작",mass:"질량 <i>M</i>",radius:"반지름 <i>R</i>",
+ h1:"회전 운동학",
+ p1a:"회전운동은 자연스럽게 극좌표계(polar coordinates)로 기술합니다. 각도 단위는 라디안(radian)입니다: <i>θ</i>(rad) = (π/180°)<i>θ</i>(° 단위) = <i>s</i>/<i>r</i>(호의 길이/반지름). 길이/길이이므로 물리적 차원은 없습니다. 한 바퀴는 <i>s</i> = 2π<i>r</i>, 즉 <i>θ</i> = 2π = 360°입니다. 각도 <i>θ</i><sub>i</sub> → <i>θ</i><sub>f</sub>로 변하면 각변위 Δ<i>θ</i> = <i>θ</i><sub>f</sub> − <i>θ</i><sub>i</sub>입니다. Δ<i>t</i> 시간에 그만큼 변하면 평균 각속도 <i>ω</i><sub>avg</sub> = Δ<i>θ</i>/Δ<i>t</i>(차원: 1/시간), 순간 각속도 <i>ω</i> = d<i>θ</i>/d<i>t</i>입니다. 순간 각속도가 <i>ω</i><sub>i</sub> → <i>ω</i><sub>f</sub>로 변하면 평균 각가속도 <i>α</i><sub>avg</sub> = Δ<i>ω</i>/Δ<i>t</i>, 순간 각가속도 <i>α</i> = d<i>ω</i>/d<i>t</i> = d<sup>2</sup><i>θ</i>/d<i>t</i><sup>2</sup>(차원: 1/시간<sup>2</sup>)입니다. 각속도, 각가속도는 모두 벡터량입니다. 방향은? 오른손 법칙! 회전 방향으로 오른손을 감싸 쥐었을 때 엄지손가락이 가리키는 방향이 <b>ω</b>입니다. <b>α</b>의 방향은 <b>ω</b>가 증가하면 <b>ω</b>와 같은 방향, 감소하면 반대 방향입니다.",
+ p1b:"선형운동(병진)과 마찬가지로 시간 미분(기울기)은 <i>θ</i> → <i>ω</i> → <i>α</i>, 시간 적분(곡선 아래 넓이)은 그 반대입니다. 등각가속도 운동(<i>α</i>가 상수!)은 병진운동에서 가속도 <i>a</i>가 일정한 것과 수학적인 꼴이 정확히 같습니다. 초기 각도 <i>θ</i><sub>0</sub>, 초기 각속도 <i>ω</i><sub>0</sub>인 등각가속도 회전운동: <i>ω</i> = <i>ω</i><sub>0</sub> + <i>αt</i>, <i>θ</i> = <i>θ</i><sub>0</sub> + <i>ω</i><sub>0</sub><i>t</i> + (1/2)<i>αt</i><sup>2</sup>, <i>t</i>를 소거하면 <i>ω</i><sup>2</sup> = <i>ω</i><span class='ss'><sup>2</sup><sub>0</sub></span> + 2<i>α</i>(<i>θ</i> − <i>θ</i><sub>0</sub>)입니다. 물체의 모든 점은 단위 시간에 같은 각도만큼 돌지만, 바깥쪽 점일수록 더 많은 거리를 움직이므로 선속도가 큽니다: <i>v</i> = <i>ωr</i>.",
+ w0:"초기 각속도 <i>ω</i><sub>0</sub>",al:"각가속도 <i>α</i>",
+ rTh:"각도 <i>θ</i>",rW:"각속도 <i>ω</i>",rRev:"회전 수",rS1:"호의 길이 <i>s</i> = <i>θr</i> (r = 1, 2, 3 m)",rDir:"<b>ω</b>의 방향 (오른손 법칙)",outP:"종이 밖으로 ⊙ (반시계)",inP:"종이 안으로 ⊗ (시계)",stopped:"회전 없음",gTh:"θ(t) (rad)",gW:"ω(t) (rad/s)",
+ h2:"선변수와 각변수의 관계",
+ p2:"강체(rigid body)의 회전운동: 특정 회전축을 중심으로 강체를 구성하는 모든 성분이 같은 각변위, 각속도, 각가속도로 움직입니다. 위치: 각도 <i>θ</i>의 정의에 의해 <i>s</i> = <i>θr</i>입니다. <i>r</i>이 크면 같은 각도만큼 돌아가도 위치가 많이 바뀌고, <i>r</i>이 같으면 위치 변화는 돌아가는 각도 <i>θ</i>에 비례합니다. 속력: <i>r</i>은 상수로 두고 시간으로 미분하면 d<i>s</i>/d<i>t</i> = (d<i>θ</i>/d<i>t</i>)<i>r</i>, 즉 <i>v</i> = <i>ωr</i>이고, 속도 벡터는 항상 회전 축 주위의 원의 접선입니다. 강체의 각속력 <i>ω</i>가 일정하다면 같은 <i>r</i>에 있는 입자의 선속력 <i>v</i>도 일정하므로 강체 내의 모든 입자는 등속 원운동을 하고, 강체 자체의 회전주기는 <i>T</i> = 2π<i>r</i>/<i>v</i> = 2π/<i>ω</i>(한 바퀴 도는 데 걸리는 시간)입니다. 시간에 대해 한 번 더 미분하면 d<sup>2</sup><i>s</i>/d<i>t</i><sup>2</sup> = d<i>v</i>/d<i>t</i> = (d<i>ω</i>/d<i>t</i>)<i>r</i> = <i>αr</i>인데, 이것은 접선 방향 속력의 변화만 고려한 것입니다: 가속도의 접선 성분 <i>a</i><sub>t</sub> = <i>αr</i>. 원운동에서 배웠듯이 등속 원운동에서도 원의 중심을 향하는 구심가속도 <i>a</i><sub>r</sub> = <i>v</i><sup>2</sup>/<i>r</i> = <i>ω</i><sup>2</sup><i>r</i>가 있어서 속도의 방향을 계속 바꿔 줍니다!",
+ wS:"각속도 <i>ω</i>",aS:"각가속도 <i>α</i>",rP:"점의 거리 <i>r</i>",
+ rV2:"<i>v</i> = <i>ωr</i>",rAt:"<i>a</i><sub>t</sub> = <i>αr</i>",rAr:"<i>a</i><sub>r</sub> = <i>ω</i><sup>2</sup><i>r</i>",rA2:"|<b>a</b>| = <span class='sqrt'><span><i>a</i><span class='ss'><sup>2</sup><sub>t</sub></span> + <i>a</i><span class='ss'><sup>2</sup><sub>r</sub></span></span></span>",rT2:"주기 2π/<i>ω</i> (현재)",
+ h3:"회전운동에너지와 회전관성",
+ p3a:"강체를 이루는 각 성분의 질량을 <i>m</i><sub>1</sub>, …, <i>m<sub>N</sub></i>, 속도를 <i>v</i><sub>1</sub>, …, <i>v<sub>N</sub></i>이라 하면 강체의 운동에너지는 <i>K</i> = Σ(1/2)<i>m<sub>i</sub>v<sub>i</sub></i><sup>2</sup>이고, <i>v<sub>i</sub></i> = d<i>s<sub>i</sub></i>/d<i>t</i> = d(<i>r<sub>i</sub>θ<sub>i</sub></i>)/d<i>t</i> = <i>r<sub>i</sub>ω<sub>i</sub></i>(<i>s<sub>i</sub></i>: 호의 길이)입니다. 강체에서는 <i>ω<sub>i</sub></i>가 모두 같다고 했으므로 <i>K</i> = (1/2)<i>ω</i><sup>2</sup>(Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup>)입니다. <i>I</i> = Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup>을 관성모멘트 또는 회전관성(rotational inertia)으로 정의하면 <i>K</i> = (1/2)<i>Iω</i><sup>2</sup>로, 선운동의 운동에너지 (1/2)<i>mv</i><sup>2</sup>과 비교됩니다. 병진운동에서 질량 <i>m</i>의 역할은 가속시키기 힘든 관성(inertia)을 주는 것이고, 회전운동에서 회전관성 <i>I</i>의 역할은 회전운동을 시작시키거나 멈추기 힘든 관성을 주는 것입니다.",
+ p3b:"질량 <i>m<sub>i</sub></i>의 총합뿐만 아니라, 질량이 축과의 거리 <i>r<sub>i</sub></i>에 따라 어떻게 분포되어 있는지가 중요합니다! 즉 같은 질량이라면 회전축에서 최대한 멀리 질량 요소들이 분포하는 것이 큰 <i>I</i> 값을 줍니다. 예: 길이 <i>L</i>인 가벼운 막대 양 끝에 질량 <i>m</i> 두 개. 질량중심을 지나는 회전축이면 <i>I</i> = <i>m</i>(<i>L</i>/2)<sup>2</sup> + <i>m</i>(<i>L</i>/2)<sup>2</sup> = (1/2)<i>mL</i><sup>2</sup>, 회전축이 한쪽 질량에 있으면 <i>I</i> = <i>mL</i><sup>2</sup> + <i>m</i> · 0<sup>2</sup> = <i>mL</i><sup>2</sup>입니다. 같은 물체라도 회전축에 따라 회전관성이 다름! 연속체의 경우에는 <i>I</i> = lim Σ Δ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup> = ∫<i>r</i><sup>2</sup> d<i>m</i>이며, 일반적으로 <i>r</i>(<i>m</i>)은 함수 관계입니다.",
+ m3:"각 질량 <i>m</i>",L3:"간격 <i>L</i>",ax3:"회전축 위치 (0 = 중심, ±1 = 질량 위치)",w3:"각속도 <i>ω</i>",
+ rI3:"<i>I</i> = Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup>",rIc3:"중심 축: (1/2)<i>mL</i><sup>2</sup>",rIe3:"한쪽 질량 축: <i>mL</i><sup>2</sup>",rK3:"<i>K</i> = (1/2)<i>Iω</i><sup>2</sup>",
+ h4:"여러 가지 모양의 회전관성",
+ p4:"예: 질량 <i>M</i>, 길이 <i>L</i>인 균일한 막대의 질량중심(com)을 지나는 회전축에 대한 회전관성. 미소 길이요소 d<i>x</i>에 해당하는 미소질량은 d<i>m</i> = (<i>M</i>/<i>L</i>)d<i>x</i>(비례 관계)이므로 <i>I</i> = ∫<i>x</i><sup>2</sup> d<i>m</i> = (<i>M</i>/<i>L</i>)∫<i>x</i><sup>2</sup> d<i>x</i>(−<i>L</i>/2에서 <i>L</i>/2까지) = (<i>M</i>/<i>L</i>)[(1/3)<i>x</i><sup>3</sup>] = (<i>M</i>/3<i>L</i>)[(<i>L</i>/2)<sup>3</sup> − (−<i>L</i>/2)<sup>3</sup>] = (1/12)<i>ML</i><sup>2</sup>입니다. 아래 목록은 몇 가지 모양의 강체에 대한 회전관성 공식입니다. 속이 찬 원통의 중심축에 대한 (1/2)<i>MR</i><sup>2</sup>과 같은 원통의 중심을 지나는 지름에 대한 (1/12)<i>ML</i><sup>2</sup> + (1/4)<i>MR</i><sup>2</sup>을 비교해 봅시다. 가는 막대라면 <i>R</i> &lt; <i>L</i>이므로 <i>R</i><sup>2</sup> ≪ <i>L</i><sup>2</sup>이고, (1/2)<i>R</i><sup>2</sup> &lt; (1/12)<i>L</i><sup>2</sup> + (1/4)<i>R</i><sup>2</sup>입니다. 막대는 긴 축을 중심으로 회전시키기 더 쉽고, 옆으로 돌리기는 더 어렵습니다. 각 모양에 같은 토크를 주고 얼마나 빨리 돌기 시작하는지 보세요.",
+ shape:"모양",L4:"길이 <i>L</i> (막대, 원통)",
+ hoop:"가는 고리, 중심축",ring:"두꺼운 고리, 중심축",disk:"속이 찬 원통/원판, 중심축",cylD:"속이 찬 원통, 지름 축",rodC:"가는 막대, 중심",rodE:"가는 막대, 끝",sph:"속이 찬 구, 지름 축",shell:"얇은 구껍질, 지름 축",hoopD:"가는 고리, 지름 축",slab:"얇은 판, 면에 수직인 축",
+ rF4:"공식",rI4:"<i>I</i>",rAl4:"<i>τ</i> = 1 N·m일 때 <i>α</i> = <i>τ</i>/<i>I</i>",rW4:"2초 후 <i>ω</i>",
+ h5:"평행축 정리",
+ p5:"원래 회전축에 대한 회전관성 <i>I</i>를 알고, 회전축을 거리 <i>d</i>만큼 평행이동시킨다고 합시다. 모든 위치 벡터가 <b>r</b> → <b>r</b> + Δ<b>r</b> = <b>r′</b>(|Δ<b>r</b>| = <i>d</i>)로 바뀌므로 <i>I′</i> = ∫<i>r′</i><sup>2</sup> d<i>m</i> = ∫(<b>r</b> + Δ<b>r</b>) · (<b>r</b> + Δ<b>r</b>) d<i>m</i> = ∫<i>r</i><sup>2</sup> d<i>m</i> + 2Δ<b>r</b> · ∫<b>r</b> d<i>m</i> + ∫Δ<i>r</i><sup>2</sup> d<i>m</i>입니다. 첫 항은 원래의 <i>I</i>, Δ<b>r</b>은 상수이므로 적분 밖으로 뺄 수 있고, 마지막 항은 <i>md</i><sup>2</sup>, ∫<b>r</b> d<i>m</i>은 강체의 질량중심 × 질량 = <i>m</i><b>r</b><sub>com</sub>입니다. 처음에 잡았던 회전축이 질량중심을 지난다면 정의상 <b>r</b><sub>com</sub> = 0이므로 <i>I′</i> = <i>I</i><sub>com</sub> + <i>md</i><sup>2</sup> ≥ <i>I</i><sub>com</sub>: 회전관성은 회전축이 질량중심을 지날 때 최소가 됩니다. 앞의 두 질량 예로 확인: <i>I</i><sub>com</sub> = (1/2)<i>mL</i><sup>2</sup>이고, 평행축 정리에 의해 한쪽 질량이 회전축일 때 <i>I</i> = <i>I</i><sub>com</sub> + (2<i>m</i>)(<i>L</i>/2)<sup>2</sup> = <i>mL</i><sup>2</sup>(전체 질량이 2<i>m</i>이므로). 확인!",
+ body5:"물체",rod:"막대",dsk:"원판",dd:"질량중심에서 회전축까지 거리 <i>d</i>",
+ rIcm:"<i>I</i><sub>com</sub>",rMd:"<i>Md</i><sup>2</sup>",rI5:"<i>I</i> = <i>I</i><sub>com</sub> + <i>Md</i><sup>2</sup>",rIn:"∫<i>r</i><sup>2</sup> d<i>m</i> (수치 계산)",gI5:"d에 따른 I (질량중심에서 최소)",
+ h6:"토크",
+ p6a:"토크 <b>τ</b>는 회전운동의 변화를 일으키는 힘(“돌림힘”)입니다. 회전축에서 <b>r</b>인 위치에 가한 힘 <b>F</b>는 <b>r</b> 방향 성분 <i>F</i> cos <i>φ</i>(아무것도 돌리지 않음)와 수직 성분 <i>F</i> sin <i>φ</i>(돌림)로 나뉩니다. 토크의 크기는 |<b>τ</b>| = <i>rF</i> sin <i>φ</i>이고, 벡터로는 외적(cross product) <b>τ</b> = <b>r</b> × <b>F</b> = (<i>yF</i><sub>z</sub> − <i>zF</i><sub>y</sub>, <i>zF</i><sub>x</sub> − <i>xF</i><sub>z</sub>, <i>xF</i><sub>y</sub> − <i>yF</i><sub>x</sub>)이며, 방향은 오른손 법칙을 따릅니다! 선운동(병진운동)과 회전운동의 물리량 대응관계: <i>x</i> ↔ <i>θ</i>, <i>v</i> ↔ <i>ω</i>, <i>a</i> ↔ <i>α</i>, <i>m</i> ↔ <i>I</i>, <i>F</i> ↔ <i>τ</i>(토크).",
+ p6b:"다시 강체를 작은 조각 <i>i</i>(질량 <i>m<sub>i</sub></i>)들로 쪼갠 다음 각 지점 <i>r<sub>i</sub></i>에 작용하는 회전 방향 힘 <i>F<sub>i</sub></i>를 고려하면, 토크의 <i>i</i> 성분은 <i>τ<sub>i</sub></i> = <i>r<sub>i</sub>F<sub>i</sub></i> = <i>r<sub>i</sub>m<sub>i</sub>a<sub>i</sub></i> = <i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup><i>α<sub>i</sub></i>입니다(<i>a<sub>i</sub></i> = <i>r<sub>i</sub>α<sub>i</sub></i>). 모두 더하면 <i>τ</i> = Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup><i>α<sub>i</sub></i>이고, 강체에서는 모든 <i>i</i>에 대해 같은 각가속도 <i>α<sub>i</sub></i> = <i>α</i>이므로 <i>τ</i> = (Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup>)<i>α</i> = <i>Iα</i>: <i>F</i> = <i>ma</i>에 대응되는 회전운동 공식입니다.",
+ Fm:"힘 <i>F</i>",rr:"회전축에서의 거리 <i>r</i>",phi:"<b>r</b>과 <b>F</b> 사이의 각 <i>φ</i>",
+ rTau:"|<b>τ</b>| = <i>rF</i> sin <i>φ</i>",rPar6:"<i>F</i> cos <i>φ</i> (<b>r</b> 방향, 돌리지 않음)",rPerp6:"<i>F</i> sin <i>φ</i> (지렛대를 돌림)",rVec6:"<b>τ</b> = <b>r</b> × <b>F</b>",rArm:"지레팔 <i>r</i> sin <i>φ</i>",
+ h7:"예: 질량이 있는 도르래에 매달린 토막",
+ p7:"예전에는 도르래의 질량, 그것에 의한 회전관성을 무시했는데, 이제 제대로 고려합니다. 질량 <i>M</i>, 반지름 <i>R</i>이고 속이 균일하게 차 있는 원판형 도르래(<i>I</i> = (1/2)<i>MR</i><sup>2</sup>)에 질량 <i>m</i>인 토막이 줄로 매달려 있습니다. 낙하하는 토막의 (병진) 운동방정식: <i>mg</i> − <i>T</i> = <i>ma</i>. 도르래의 (회전) 운동방정식: <i>TR</i> = (1/2)<i>MR</i><sup>2</sup><i>α</i>, 토크 = 회전관성 × 각가속도. 식 2개에 미지수 <i>T</i>, <i>α</i>, <i>a</i> 3개? 줄이 미끄러지지 않고 맞물려 돌아가면 가속도 <i>a</i> = <i>Rα</i>의 관계(접선 성분)가 있습니다. 그러면 <i>TR</i> = (1/2)<i>MR</i><sup>2</sup>(<i>a</i>/<i>R</i>), 즉 <i>T</i> = (1/2)<i>Ma</i>이므로 <i>a</i> = 2<i>mg</i>/(<i>M</i> + 2<i>m</i>), <i>T</i> = <i>Mmg</i>/(<i>M</i> + 2<i>m</i>)입니다. 회전관성을 고려하지 않았다면(<i>M</i> = 0) <i>a</i> = <i>g</i>, <i>T</i> = 0: 자유낙하하고 실의 장력은 안 걸립니다. 그래서 그때는 반대편에 다른 질량 하나를 두어서 <i>a</i> &lt; <i>g</i>, <i>T</i> &gt; 0으로 만들었습니다(애트우드 기계).",
+ Mp:"도르래 질량 <i>M</i>",mb:"토막 질량 <i>m</i>",Rp:"도르래 반지름 <i>R</i>",
+ rA7:"<i>a</i> = 2<i>mg</i>/(<i>M</i> + 2<i>m</i>)",rT7:"<i>T</i> = <i>Mmg</i>/(<i>M</i> + 2<i>m</i>)",rAl7:"<i>α</i> = <i>a</i>/<i>R</i>",rG7:"비교: <i>g</i>",
+ h8:"일과 회전운동에너지",
+ p8:"병진운동에서 운동에너지 변화 Δ<i>K</i> = (1/2)<i>mv</i><span class='ss'><sup>2</sup><sub>f</sub></span> − (1/2)<i>mv</i><span class='ss'><sup>2</sup><sub>i</sub></span> = <i>W</i> = ∫<i>F</i> d<i>x</i>(물체에 해 준 일만큼 운동에너지가 변화)이고, 일률은 <i>P</i> = d<i>W</i>/d<i>t</i> = <i>F</i> d<i>x</i>/d<i>t</i> = <i>Fv</i>입니다. 회전운동에너지는 <i>K</i> = (1/2)<i>Iω</i><sup>2</sup>이고, 각속도가 <i>ω</i><sub>i</sub> → <i>ω</i><sub>f</sub>로 변하면 Δ<i>K</i> = (1/2)<i>Iω</i><span class='ss'><sup>2</sup><sub>f</sub></span> − (1/2)<i>Iω</i><span class='ss'><sup>2</sup><sub>i</sub></span> = <i>W</i>, 회전운동에서는 <i>W</i> = ∫<i>τ</i> d<i>θ</i>(처음 각도에서 나중 각도까지, <i>F</i> → <i>τ</i>, <i>x</i> → <i>θ</i>)입니다. <i>τ</i> d<i>θ</i> = <i>Fr</i> cos <i>φ′</i> d<i>θ</i> = <i>F</i> cos <i>φ′</i> d<i>s</i> = <b>F</b> · d<b>s</b>이기 때문입니다. d<i>W</i> = <i>τ</i> d<i>θ</i>에서 일률은 <i>P</i> = d<i>W</i>/d<i>t</i> = <i>τ</i> d<i>θ</i>/d<i>t</i> = <i>τω</i>입니다.",
+ Iw:"회전관성 <i>I</i>",tq:"토크 <i>τ</i>",
+ rTh8:"돌아간 각 <i>θ</i>",rW8:"<i>W</i> = <i>τθ</i>",rK8:"<i>K</i> = (1/2)<i>Iω</i><sup>2</sup>",rP8:"일률 <i>P</i> = <i>τω</i>",bW:"일 <i>W</i> = <i>τθ</i>",bK:"<i>K</i> = (1/2)<i>Iω</i><sup>2</sup>",
+ anaH:["병진운동 (고정된 방향)","","회전운동 (고정된 축)",""],
+ ana:[["위치","<i>x</i>","각위치","<i>θ</i>"],["속도","<i>v</i> = d<i>x</i>/d<i>t</i>","각속도","<i>ω</i> = d<i>θ</i>/d<i>t</i>"],["가속도","<i>a</i> = d<i>v</i>/d<i>t</i>","각가속도","<i>α</i> = d<i>ω</i>/d<i>t</i>"],["질량","<i>m</i>","관성모멘트","<i>I</i>"],["뉴턴의 제2법칙","<i>F</i><sub>net</sub> = <i>ma</i>","뉴턴의 제2법칙","<i>τ</i><sub>net</sub> = <i>Iα</i>"],["일","<i>W</i> = ∫<i>F</i> d<i>x</i>","일","<i>W</i> = ∫<i>τ</i> d<i>θ</i>"],["운동에너지","<i>K</i> = (1/2)<i>mv</i><sup>2</sup>","운동에너지","<i>K</i> = (1/2)<i>Iω</i><sup>2</sup>"],["일률 (일정한 힘)","<i>P</i> = <i>Fv</i>","일률 (일정한 토크)","<i>P</i> = <i>τω</i>"],["일–운동에너지 정리","<i>W</i> = Δ<i>K</i>","일–운동에너지 정리","<i>W</i> = Δ<i>K</i>"],["선운동량","<b>p</b> = <i>m</i><b>v</b>","각운동량","<b>L</b> = <i>I</i><b>ω</b>"]],
+ h9:"굴림운동",
+ p9a:"바퀴가 굴러가는 운동은 회전운동과 병진운동이 같이 일어나는 운동입니다. 바퀴가 <i>s</i>만큼 굴러가는 동안 각도가 <i>θ</i>만큼 돌아가므로 <i>s</i> = <i>θR</i>이고, 질량중심의 속도의 크기는 <i>v</i><sub>com</sub> = d<i>s</i>/d<i>t</i> = (d<i>θ</i>/d<i>t</i>)<i>R</i> = <i>ωR</i>: 미끄러짐 없이 부드럽게 굴러가는 운동입니다. 순수한 회전운동 + 순수한 병진운동 = 굴림운동. 순수한 회전에서는 꼭대기가 +<i>v</i><sub>com</sub>, 바닥이 −<i>v</i><sub>com</sub>이고, 순수한 병진에서는 모든 점이 <i>v</i><sub>com</sub>입니다. 더하면 바퀴의 바닥에 있는 점 P는 언제나 정지 상태, 맨 꼭대기의 점 T는 2<i>v</i><sub>com</sub>의 속력으로 움직입니다. 그래서 구르는 바퀴의 사진은 위쪽이 흐리고 아래쪽이 선명합니다.",
+ p9b:"굴림운동의 운동에너지: 각속도 <i>ω</i> = <i>v</i><sub>com</sub>/<i>R</i>이고, T에서 <i>v</i> = <i>ω</i>(2<i>R</i>) = 2<i>v</i><sub>com</sub>, O에서 <i>v</i> = <i>ωR</i> = <i>v</i><sub>com</sub>입니다. 매 순간 회전축이 P에 있는 순수한 회전운동으로 볼 수도 있으므로 이 관점에서 <i>K</i> = (1/2)<i>I</i><sub>P</sub><i>ω</i><sup>2</sup>이고, 평행축 정리에 의해 P를 축으로 하는 관성모멘트 <i>I</i><sub>P</sub> = <i>I</i><sub>com</sub> + <i>MR</i><sup>2</sup>입니다. 따라서 <i>K</i> = (1/2)(<i>I</i><sub>com</sub> + <i>MR</i><sup>2</sup>)<i>ω</i><sup>2</sup> = (1/2)<i>I</i><sub>com</sub><i>ω</i><sup>2</sup> + (1/2)<i>Mv</i><span class='ss'><sup>2</sup><sub>com</sub></span>: 질량중심을 지나는 축에 대한 회전운동에너지와 바퀴의 병진운동과 관련된 운동에너지로 이루어져 있습니다. 바퀴가 바깥 부분에만 질량이 몰려 있다고 생각하면 <i>I</i><sub>com</sub> = <i>MR</i><sup>2</sup>이라 <i>K</i> = (1/2)<i>Mv</i><span class='ss'><sup>2</sup><sub>com</sub></span> + (1/2)<i>Mv</i><span class='ss'><sup>2</sup><sub>com</sub></span> = <i>Mv</i><span class='ss'><sup>2</sup><sub>com</sub></span>로 회전 : 병진 = 1 : 1의 비율로 운동에너지에 기여합니다. 바퀴가 속이 찬 원판이라면 <i>I</i><sub>com</sub> = (1/2)<i>MR</i><sup>2</sup>이므로 <i>K</i> = (3/4)<i>Mv</i><span class='ss'><sup>2</sup><sub>com</sub></span>, 회전 : 병진 = 1 : 2의 비율입니다.",
+ view9:"보기",vRot:"순수한 회전",vTr:"순수한 병진",vRoll:"굴림 (합)",vc:"속력 <i>v</i><sub>com</sub>",wheel:"바퀴",whoop:"고리 (질량이 테두리에)",wdisk:"속이 찬 원판",
+ rTop:"꼭대기 점 T의 속력",rBot:"바닥 점 P의 속력",rOm9:"<i>ω</i> = <i>v</i><sub>com</sub>/<i>R</i>",rSplit:"<i>K</i><sub>회전</sub> : <i>K</i><sub>병진</sub>",bKr:"(1/2)<i>I</i><sub>com</sub><i>ω</i><sup>2</sup>",bKt:"(1/2)<i>Mv</i><span class='ss'><sup>2</sup><sub>com</sub></span>",
+ h10:"굴림운동에서 작용하는 힘과 토크: 경사면을 내려오는 굴림운동",
+ p10a:"일정한 속도로 구르면 바닥과 닿는 부분 P가 미끄러지려고 하지 않으므로 마찰력이 없습니다. 바퀴 중심의 속력(<i>v</i><sub>com</sub>)을 증가 또는 감소시킨다면(예: 자전거 페달을 밟아서 바퀴를 회전시킴), P에서 바퀴가 미끄러지지 않도록 정지 마찰력이 작용해야 하며, 이 힘이 가속도 <i>a</i><sub>com</sub>을 만들어 냅니다(<i>a</i><sub>com</sub> = <i>Rα</i>: 안 미끄러질 조건). “움직인다”고 해서 운동 마찰력 <i>f</i><sub>k</sub>가 아니라 정지 마찰력 <i>f</i><sub>s</sub>입니다! 미끄러지는 상황에만 작용합니다. 경사면을 내려오는 굴림운동: 수직항력 <i>N</i> = <i>Mg</i> cos <i>θ</i>이고, <i>Mg</i> sin <i>θ</i> − <i>f</i><sub>s</sub> = <i>Ma</i><sub>com</sub>, <i>Rf</i><sub>s</sub> = <i>I</i><sub>com</sub><i>α</i> = <i>I</i><sub>com</sub>(<i>a</i><sub>com</sub>/<i>R</i>)입니다(마찰이 없다면 중력만으로는 중심에 대한 회전이 생기지 않음). 따라서 <i>f</i><sub>s</sub> = <i>I</i><sub>com</sub><i>a</i><sub>com</sub>/<i>R</i><sup>2</sup>이고 <i>a</i><sub>com</sub> = <i>g</i> sin <i>θ</i>/(1 + <i>I</i><sub>com</sub>/<i>MR</i><sup>2</sup>)입니다.",
+ p10b:"<i>I</i><sub>com</sub> = 0이면(“크기가 없는” 점) 그냥 <i>θ</i>인 비탈면에서 미끄러짐: <i>a</i> = <i>g</i> sin <i>θ</i>. 바깥쪽에만 질량이 몰린 바퀴(<i>I</i><sub>com</sub> = <i>MR</i><sup>2</sup>): <i>a</i> = (1/2)<i>g</i> sin <i>θ</i>. 속이 찬 원판(<i>I</i><sub>com</sub> = (1/2)<i>MR</i><sup>2</sup>): <i>a</i> = (2/3)<i>g</i> sin <i>θ</i>. 굴려 보면 가속도로부터 회전관성 추론 가능! 요요는 각도 <i>θ</i> = 90°인 비탈면을 내려오는 반지름 <i>R</i><sub>0</sub>짜리 물체의 굴림운동과 같고, 정지 마찰력 <i>f</i><sub>s</sub> 대신 줄의 장력 <i>T</i>가 걸립니다: <i>Mg</i> − <i>T</i> = <i>Ma</i><sub>com</sub>, <i>TR</i><sub>0</sub> = <i>I</i><sub>com</sub><i>a</i><sub>com</sub>/<i>R</i><sub>0</sub>이므로 <i>a</i><sub>com</sub> = <i>g</i>/(1 + <i>I</i><sub>com</sub>/<i>MR</i><span class='ss'><sup>2</sup><sub>0</sub></span>)입니다.",
+ slope:"경사각 <i>θ</i>",race:"경주",block:"미끄러지는 토막 (마찰 없음)",
+ rAb:"미끄러지는 토막",rAs:"속이 찬 구 (2/5)",rAd:"속이 찬 원판 (1/2)",rAh:"고리 (1)",rFs:"원판에 작용하는 <i>f</i><sub>s</sub> (1 kg당)",
+ h11:"각운동량과 그 보존",
+ p11a:"입자의 각운동량은 <b>ℓ</b> = <b>r</b> × <b>p</b>이며, 크기는 |<b>ℓ</b>| = <i>rp</i> sin <i>θ</i>, 방향은 오른손 법칙입니다. <b>τ</b> = <b>r</b> × <b>F</b> = <b>r</b> × d<b>p</b>/d<i>t</i>이고, d<b>ℓ</b>/d<i>t</i> = d(<b>r</b> × <b>p</b>)/d<i>t</i> = (d<b>r</b>/d<i>t</i>) × <b>p</b> + <b>r</b> × d<b>p</b>/d<i>t</i>에서 첫 항은 <b>v</b> × <i>m</i><b>v</b> = 0(<i>v</i><sup>2</sup> sin 0 = 0)이므로, 토크 = 각운동량의 시간 변화율: <b>τ</b> = d<b>ℓ</b>/d<i>t</i>. <b>τ</b> = 0이면 각운동량 <b>ℓ</b>이 시간에 대한 상수입니다. 입자계의 각운동량 <b>L</b> = <b>ℓ</b><sub>1</sub> + ⋯ + <b>ℓ</b><sub><i>n</i></sub>(<i>i</i>번째 입자의 각운동량의 합)에 대해 d<b>L</b>/d<i>t</i> = Σ<b>τ</b><sub>net,<i>i</i></sub> = <b>τ</b><sub>net</sub>: 입자계에 작용하는 알짜 외부 토크는 입자계의 전체 각운동량의 시간 변화율입니다. 강체의 경우 <b>L</b> = Σ<b>r</b><sub><i>i</i></sub> × <b>p</b><sub><i>i</i></sub> = Σ<i>m<sub>i</sub></i><b>r</b><sub><i>i</i></sub> × <b>v</b><sub><i>i</i></sub> = Σ<i>m<sub>i</sub>r<sub>i</sub></i><sup>2</sup><b>ω</b> = <i>I</i><b>ω</b>(강체이므로 공통의 <b>ω</b>)이며, 병진운동의 <b>p</b> = <i>m</i><b>v</b>에 해당하는 공식입니다.",
+ p11b:"고립된 계에서 <b>τ</b><sub>net</sub> = 0이면 <b>L</b> = 상수: 처음과 나중의 각운동량이 같아야 합니다. <b>L</b><sub>i</sub> = <b>L</b><sub>f</sub>, 즉 <i>I</i><sub>i</sub><i>ω</i><sub>i</sub> = <i>I</i><sub>f</sub><i>ω</i><sub>f</sub>. 회전 의자에 앉아 아령을 든 팔을 쭉 뻗은 상태(<i>I</i><sub>i</sub>가 큼)에서 팔을 오므리면(<i>I</i><sub>f</sub>가 작음) <i>I</i><sub>i</sub> &gt; <i>I</i><sub>f</sub>이므로 <i>ω</i><sub>i</sub> &lt; <i>ω</i><sub>f</sub>, 더 빨리 돕니다. 운동에너지는 보존되지 않습니다: 팔을 오므리면서 일을 하기 때문입니다.",
+ arm:"아령과 회전축 사이의 거리",md:"아령 하나의 질량",
+ rL11:"<i>L</i> = <i>Iω</i> (일정)",rI11:"<i>I</i> = <i>I</i><sub>몸</sub> + 2<i>mr</i><sup>2</sup>",rW11:"<i>ω</i> = <i>L</i>/<i>I</i>",rK11:"<i>K</i> = (1/2)<i>Iω</i><sup>2</sup> = <i>L</i><sup>2</sup>/2<i>I</i>",bL:"각운동량 <i>L</i>",bKs:"운동에너지 <i>K</i>",
+ h12:"자이로스코프의 축돌기 운동",
+ p12:"질량 <i>M</i>, 회전관성 <i>I</i>, 각속도 <i>ω</i>로 회전하는 바퀴의 축 끝이 지지대에 얹혀 있습니다. 위에서 볼 때 반시계 방향으로 돌아가는 축돌기 운동(precession)을 하며, 이는 중력이 아래로 향하기 때문입니다. 토크의 방향이 중력 방향에 의해 정해지므로(수평, 축에 수직), 축돌기 운동의 방향으로 중력 방향을 알 수 있습니다: 휴대폰이 땅 쪽을 알아내는 방법(“자이로 센서”). 바퀴가 매우 빨라서 축돌기 운동에 의한 각운동량은 무시할 수 있다고 가정하면 <i>L</i> = <i>Iω</i>, <b>τ</b> = d<b>L</b>/d<i>t</i>이므로 <i>Mgr</i> = d<i>L</i>/d<i>t</i>입니다. 벡터 <b>L</b>의 머리가 그리는 원형 궤적에서 부채꼴의 성질에 의해 d<i>ϕ</i> = d<i>L</i>/<i>L</i>, 즉 d<i>L</i> = <i>L</i> d<i>ϕ</i>입니다. 따라서 <i>Mgr</i> = <i>L</i> d<i>ϕ</i>/d<i>t</i> = <i>LΩ</i> = <i>IωΩ</i>, 축돌기 각속도 <i>Ω</i> = <i>Mgr</i>/(<i>Iω</i>)입니다. 빨리 돌수록 축돌기는 느려집니다.",
+ spin:"회전 각속도 <i>ω</i>",armr:"받침점에서 바퀴까지 거리 <i>r</i>",Mg:"바퀴 질량 <i>M</i>",
+ rL12:"<i>L</i> = <i>Iω</i>",rTq:"<i>τ</i> = <i>Mgr</i>",rOm:"축돌기 각속도 <i>Ω</i> = <i>Mgr</i>/<i>Iω</i>",rPer:"축돌기 한 바퀴 시간",rRat:"<i>ω</i>/<i>Ω</i> (커야 함)"
+}
+};
+
+const lang="ko";const L=I18N[lang];const t=k=>(L[k]??k);
+const $=s=>document.querySelector(s);const NS="http://www.w3.org/2000/svg";
+function E(tag,attrs={},parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e}
+function H(tag,attrs={},parent,html){const e=document.createElement(tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(html!=null)e.innerHTML=html;if(parent)parent.appendChild(e);return e}
+const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const MU0=4*Math.PI*1e-7,EC=1.602e-19;
+const minus=s=>String(s).replace(/-/g,"−");
+function trimP(x,sig){let s=x.toPrecision(sig);if(s.includes("e"))s=String(+s);return s}
+function si(x,unit,sig=3){if(!isFinite(x))return"∞ "+unit;if(Math.abs(x)<1e-30)return"0 "+unit;
+  const P=[[1e9,"G"],[1e6,"M"],[1e3,"k"],[1,""],[1e-3,"m"],[1e-6,"μ"],[1e-9,"n"],[1e-12,"p"],[1e-15,"f"]];const a=Math.abs(x);
+  for(const[f,p]of P){if(a>=f*0.99995)return minus(trimP(x/f,sig))+" "+p+unit}return minus(sci(x))+" "+unit}
+const SUPS={"-":"⁻","0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹"};
+function sci(x,sig=3){if(!isFinite(x))return"∞";if(x===0)return"0";const a=Math.abs(x);if(a>=1e-2&&a<1e4)return minus(trimP(x,sig));
+  let e=Math.floor(Math.log10(a));let m=+(x/10**e).toPrecision(sig);if(Math.abs(m)>=10){m=+(m/10).toPrecision(sig);e++}
+  return minus(String(m))+"×10"+String(e).split("").map(c=>SUPS[c]).join("")}
+const fx=(x,d=2)=>minus((Math.abs(x)<0.5*10**-d?0:x).toFixed(d));
+const S={};
+function slider(box,{id,key,min,max,step,value,fmt,on}){const d=H("div",{class:"ctl"},box);const l=H("label",{for:id},d);H("span",{"data-i18n":key},l);const o=H("output",{},l);
+  const inp=H("input",{type:"range",id,min,max,step,value},d);const upd=()=>{S[id]=+inp.value;o.textContent=fmt(S[id])};inp.addEventListener("input",()=>{upd();on()});upd();return inp}
+function seg(box,{id,key,options,value,on}){const d=H("div",{class:"ctl"},box);H("span",{class:"lbl","data-i18n":key},d);const g=H("div",{class:"seg",role:"group"},d);S[id]=value;
+  options.forEach(([v,k])=>{const b=H("button",{type:"button","data-i18n":k,"aria-pressed":String(v===value)},g);b.addEventListener("click",()=>{S[id]=v;g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));on()})})}
+function check(box,{id,key,value,on}){const lab=H("label",{class:"check"},box);const cb=H("input",{type:"checkbox",id},lab);cb.checked=value;S[id]=value;H("span",{"data-i18n":key},lab);cb.addEventListener("change",()=>{S[id]=cb.checked;on()})}
+function button(box,key,fn){const b=H("button",{type:"button",class:"btn","data-i18n":key},box);b.addEventListener("click",fn);return b}
+function readout(box,rows){const dl=H("dl",{class:"read"},box);const out={};rows.forEach(([id,key])=>{H("dt",{"data-i18n":key},dl);out[id]=H("dd",{},dl)});return out}
+function txt(g,x,y,s,a={}){const e=E("text",Object.assign({x,y,"font-size":14},a),g);s=String(s);
+  if(!s.includes("_")){e.textContent=s;return e}const parts=s.split(/_([A-Za-z0-9]+)/);let shifted=false;
+  parts.forEach((p,k)=>{if(!p)return;const sub=k%2===1;const ts=E("tspan",{},e);if(sub){ts.setAttribute("dy","4");ts.setAttribute("font-size","0.72em");shifted=true}else if(shifted){ts.setAttribute("dy","-4");shifted=false}ts.textContent=p});return e}
+function arrow(g,x1,y1,x2,y2,col,w=2.5,hd=9){const dx=x2-x1,dy=y2-y1,Ln=Math.hypot(dx,dy);if(Ln<2)return;const ux=dx/Ln,uy=dy/Ln;const h=Math.min(hd,Ln*0.6);const bx=x2-ux*h,by=y2-uy*h;
+  E("line",{x1,y1,x2:bx,y2:by,stroke:col,"stroke-width":w,"stroke-linecap":"round"},g);E("polygon",{points:`${x2},${y2} ${bx-uy*h*.55},${by+ux*h*.55} ${bx+uy*h*.55},${by-ux*h*.55}`,fill:col},g)}
+function dotOut(g,x,y,r,col){E("circle",{cx:x,cy:y,r,fill:"var(--panel)",stroke:col,"stroke-width":2},g);E("circle",{cx:x,cy:y,r:Math.max(1.6,r*.28),fill:col},g)}
+function crossIn(g,x,y,r,col){E("circle",{cx:x,cy:y,r,fill:"var(--panel)",stroke:col,"stroke-width":2},g);const s=r*.6;E("path",{d:`M${x-s},${y-s}L${x+s},${y+s}M${x-s},${y+s}L${x+s},${y-s}`,stroke:col,"stroke-width":2},g)}
+function xMark(g,x,y,s,col,op=1){E("path",{d:`M${x-s},${y-s}L${x+s},${y+s}M${x-s},${y+s}L${x+s},${y-s}`,stroke:col,"stroke-width":1.8,opacity:op},g)}
+function dMark(g,x,y,r,col,op=1){E("circle",{cx:x,cy:y,r,fill:col,opacity:op},g)}
+function graph(g,{l=60,r=420,t0=24,b=130,xmin,xmax,ymin,ymax,xt,yt,xl,yl}){const X=v=>l+(v-xmin)/(xmax-xmin)*(r-l),Y=v=>b-(v-ymin)/(ymax-ymin)*(b-t0);
+  xt.forEach(([v,s])=>{E("line",{x1:X(v),x2:X(v),y1:t0,y2:b,class:"gridl"},g);txt(g,X(v),b+15,s,{"text-anchor":"middle","font-size":11,fill:"var(--muted)"})});
+  yt.forEach(([v,s])=>{E("line",{x1:l,x2:r,y1:Y(v),y2:Y(v),class:"gridl"},g);txt(g,l-6,Y(v)+4,s,{"text-anchor":"end","font-size":11,fill:"var(--muted)"})});
+  E("line",{x1:l,x2:r,y1:Y(Math.max(ymin,Math.min(ymax,0))),y2:Y(Math.max(ymin,Math.min(ymax,0))),class:"axis"},g);E("line",{x1:l,x2:l,y1:t0,y2:b,class:"axis"},g);
+  if(xl)txt(g,(l+r)/2,b+30,xl,{"text-anchor":"middle","font-size":12,fill:"var(--muted)"});if(yl)txt(g,l,t0-9,yl,{"font-size":12,fill:"var(--muted)"});return{X,Y}}
+const deg=x=>x*Math.PI/180;
+const anims=[];
+let NOW=0;const G0=9.8;
+function setSlider(el,v){el.value=v;el.dispatchEvent(new Event("input"))}
+function bars(el,rows,max){el.innerHTML=rows.map(([k,v,cl,unit])=>`<div class="bar-row"><span class="bar-cap">${t(k)}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(0,Math.min(100,Math.abs(v)/(max||1)*100))}%;background:${cl}"></div></div><span class="v">${unit(v)}</span></div>`).join("")}
+function block(g,x,y,w,h,col,label){E("rect",{x,y,width:w,height:h,rx:4,fill:col,opacity:.85,stroke:"var(--ink)","stroke-width":1.2},g);if(label)txt(g,x+w/2,y+h/2+5,label,{"text-anchor":"middle","font-weight":700,fill:"#fff"})}
+function farrow(g,x,y,dx,dy,col,label,lx=6,ly=-6){if(Math.hypot(dx,dy)<2)return;arrow(g,x,y,x+dx,y+dy,col,3,10);if(label)txt(g,x+dx+lx,y+dy+ly,label,{"font-size":13,"font-weight":700,fill:col,stroke:"var(--panel)","stroke-width":4,"stroke-linejoin":"round","paint-order":"stroke"})}
+function playBtn(c,obj,key="playing"){const b=H("button",{type:"button",class:"btn"},c);const upd=()=>b.innerHTML=t(obj[key]?"pause":"play");b.addEventListener("click",()=>{obj[key]=!obj[key];upd()});obj._btn=upd;return b}
+const N=x=>fx(x,2)+" N";
+
+(function(){const toc=$("#toc");L.nav.forEach((n,k)=>{const a=H("a",{href:"#s"+(k+1)},toc);a.innerHTML=`<span>${k+1}</span>${n}`})})();
+const rads=x=>fx(x,2)+" rad/s",Jf=x=>fx(x,2)+" J",kgm2=x=>fx(x,4)+" kg·m²";
+function wheelDraw(g,cx,cy,R,ang,col="var(--blue)",spokes=8){E("circle",{cx,cy,r:R,fill:"var(--grid)",stroke:col,"stroke-width":4},g);for(let k=0;k<spokes;k++){const a=ang+2*Math.PI*k/spokes;E("line",{x1:cx,y1:cy,x2:cx+R*Math.cos(a),y2:cy-R*Math.sin(a),stroke:col,"stroke-width":1.4,opacity:.6},g)}E("circle",{cx,cy,r:3.5,fill:"var(--ink)"},g)}
+function curl(g,cx,cy,r,a0,a1,col,w=2.2){if(Math.abs(a1-a0)<0.05)return;let d="";const N=30;for(let k=0;k<=N;k++){const a=a0+(a1-a0)*k/N;d+=(k?"L":"M")+(cx+r*Math.cos(a)).toFixed(1)+","+(cy-r*Math.sin(a)).toFixed(1)}E("path",{d,fill:"none",stroke:col,"stroke-width":w},g);const a=a1,da=Math.sign(a1-a0)*0.25;arrow(g,cx+r*Math.cos(a-da),cy-r*Math.sin(a-da),cx+r*Math.cos(a),cy-r*Math.sin(a),col,w,9)}
+
+/* hero: rolling wheel; at four points the velocity is split into translation (v_com) + tangential (ωR) */
+(function(){const g=$("#hero");const R=62;let x=-80,ang=0;const v=110,k=0.36;
+  anims.push(dt=>{if(reduceMotion&&x>-80)return;x+=v*dt;ang-=v/R*dt;if(x>1080)x=-80;g.innerHTML="";const cy=184-R;E("line",{x1:0,x2:1000,y1:184,y2:184,stroke:"var(--ink)","stroke-width":2},g);
+    wheelDraw(g,x,cy,R,ang,"var(--muted)");
+    for(let j=0;j<8;j++){const a=ang+2*Math.PI*j/8+Math.PI/2;const px=x+R*Math.cos(a),py=cy-R*Math.sin(a);const tx=v*Math.sin(a),ty=v*Math.cos(a);const vx=v+tx,vy=ty;
+      const pick=j%2===0;// four of the eight points (they turn with the wheel) show both components
+      if(pick){arrow(g,px,py,px+v*k,py,"var(--green)",2.2,7);if(Math.hypot(tx,ty)>3)arrow(g,px+v*k,py,px+v*k+tx*k,py+ty*k,"var(--blue)",2.2,7)}
+      if(Math.hypot(vx,vy)>4)arrow(g,px,py,px+vx*k,py+vy*k,"var(--magenta)",pick?3:2.2,8)}
+    E("circle",{cx:x,cy:cy,r:3.5,fill:"var(--ink)"},g);
+    const lx=20,ly=22;const items=lang==="ko"?[["var(--green)","병진 성분 v_com"],["var(--blue)","접선 성분 ωR"],["var(--magenta)","합 v = v_com + ωR"]]:[["var(--green)","translational v_com"],["var(--blue)","tangential ωR"],["var(--magenta)","total v = v_com + ωR"]];
+    items.forEach(([c,tx2],i)=>{arrow(g,lx,ly+i*20,lx+26,ly+i*20,c,2.6,7);txt(g,lx+34,ly+i*20+5,tx2,{"font-size":13,fill:c,"font-weight":700})})})})();
+
+/* 1. kinematics */
+const S1={t:0};
+(function(){const c=$("#c1");slider(c,{id:"w01",key:"w0",min:-2,max:2,step:0.1,value:0.3,fmt:v=>minus(v.toFixed(1))+" rad/s",on:()=>{S1.t=0}});slider(c,{id:"al1",key:"al",min:-0.5,max:0.5,step:0.02,value:0.15,fmt:v=>minus(v.toFixed(2))+" rad/s²",on:()=>{S1.t=0}});
+  button(c,"reset",()=>{S1.t=0});S.ro1=readout(c,[["th","rTh"],["w","rW"],["rev","rRev"],["s","rS1"],["d","rDir"]]);})();
+function draw1(dt){S1.t+=dt;if(S1.t>10)S1.t=0;const tt=S1.t,w0=S.w01,al=S.al1;const th=w0*tt+0.5*al*tt*tt,w=w0+al*tt;const g=$("#v1");g.innerHTML="";const cx=130,cy=120,R=100;
+  E("circle",{cx,cy,r:R,fill:"var(--grid)",stroke:"var(--ink)","stroke-width":2},g);E("line",{x1:cx,x2:cx+R+14,y1:cy,y2:cy,stroke:"var(--muted)","stroke-dasharray":"3 3"},g);
+  const cols=["var(--blue)","var(--green)","var(--red)"];[1,2,3].forEach((r,i)=>{const rp=r*R/3;curl(g,cx,cy,rp,0,th,cols[i],3);const px=cx+rp*Math.cos(th),py=cy-rp*Math.sin(th);E("circle",{cx:px,cy:py,r:5,fill:cols[i]},g)});
+  E("line",{x1:cx,y1:cy,x2:cx+R*Math.cos(th),y2:cy-R*Math.sin(th),stroke:"var(--ink)","stroke-width":2},g);E("circle",{cx,cy,r:Math.abs(w)>0.01?7:4,fill:"var(--panel)",stroke:"var(--magenta)","stroke-width":2},g);
+  if(Math.abs(w)>0.01)(w>0?dotOut:crossIn)(g,cx,cy,7,"var(--magenta)");txt(g,cx+12,cy+20,"ω",{"font-style":"italic",fill:"var(--magenta)","font-weight":700});
+  const Tm=10;const thm=Math.max(...[0,2,4,6,8,10].map(x=>Math.abs(w0*x+0.5*al*x*x)),1);const G1=graph(g,{l:280,r:430,t0:24,b:120,xmin:0,xmax:Tm,ymin:-thm,ymax:thm,xt:[[0,""],[Tm,""]],yt:[[0,"0"],[thm,fx(thm,0)]],yl:t("gTh")});
+  let d="";for(let k=0;k<=100;k++){const x=Tm*k/100;d+=(k?"L":"M")+G1.X(x).toFixed(1)+","+G1.Y(w0*x+0.5*al*x*x).toFixed(1)}E("path",{d,fill:"none",stroke:"var(--blue)","stroke-width":2.2},g);E("circle",{cx:G1.X(tt),cy:G1.Y(th),r:4,fill:"var(--magenta)"},g);
+  const wm=Math.max(Math.abs(w0),Math.abs(w0+al*Tm),0.5);const G2=graph(g,{l:280,r:430,t0:150,b:240,xmin:0,xmax:Tm,ymin:-wm,ymax:wm,xt:[[0,"0"],[Tm,Tm+" s"]],yt:[[0,"0"],[wm,fx(wm,1)]],yl:t("gW")});
+  E("line",{x1:G2.X(0),y1:G2.Y(w0),x2:G2.X(Tm),y2:G2.Y(w0+al*Tm),stroke:"var(--green)","stroke-width":2.2},g);E("circle",{cx:G2.X(tt),cy:G2.Y(w),r:4,fill:"var(--magenta)"},g);
+  txt(g,20,280,"t = "+fx(tt,2)+" s",{"font-weight":700});[1,2,3].forEach((r,i)=>txt(g,20,306+i*22,"r = "+r+" m:  s = "+fx(th*r,2)+" m,  v = ωr = "+fx(w*r,2)+" m/s",{"font-size":12,fill:cols[i]}));
+  const ro=S.ro1;ro.th.textContent=fx(th,2)+" rad = "+fx(th*180/Math.PI,0)+"°";ro.w.textContent=rads(w);ro.rev.textContent=fx(th/(2*Math.PI),2);ro.s.textContent=fx(th,2)+", "+fx(2*th,2)+", "+fx(3*th,2)+" m";ro.d.textContent=t(Math.abs(w)<0.01?"stopped":w>0?"outP":"inP")}
+
+/* 2. linear and angular */
+const S2={th:0};
+(function(){const c=$("#c2");slider(c,{id:"w2",key:"wS",min:0,max:3,step:0.05,value:1,fmt:v=>v.toFixed(2)+" rad/s",on:()=>{}});slider(c,{id:"a2",key:"aS",min:-1,max:1,step:0.05,value:0.3,fmt:v=>minus(v.toFixed(2))+" rad/s²",on:()=>{}});
+  slider(c,{id:"r2",key:"rP",min:0.2,max:2,step:0.05,value:1.5,fmt:v=>v.toFixed(2)+" m",on:()=>{}});S.ro2=readout(c,[["v","rV2"],["at","rAt"],["ar","rAr"],["a","rA2"],["T","rT2"]]);})();
+function draw2(dt){const w=S.w2,al=S.a2,r=S.r2;S2.th+=w*dt*(reduceMotion?0:1);const th=S2.th;const g=$("#v2");g.innerHTML="";const cx=170,cy=150,sc=60;
+  E("circle",{cx,cy,r:2*sc+6,fill:"var(--grid)",stroke:"var(--ink)","stroke-width":2},g);E("circle",{cx,cy,r:r*sc,fill:"none",stroke:"var(--muted)","stroke-dasharray":"4 4"},g);
+  const px=cx+r*sc*Math.cos(th),py=cy-r*sc*Math.sin(th);E("line",{x1:cx,y1:cy,x2:px,y2:py,stroke:"var(--ink)","stroke-width":1.5},g);
+  const tx=-Math.sin(th),ty=-Math.cos(th);const v=w*r,at=al*r,ar=w*w*r;const k=40;
+  farrow(g,px,py,tx*v*k,ty*v*k,"var(--green)","v",4,-4);farrow(g,px,py,tx*at*k,ty*at*k,"var(--copper)","a_t",-22,14);farrow(g,px,py,-(px-cx)/(r*sc)*ar*k,-(py-cy)/(r*sc)*ar*k,"var(--red)","a_r",4,12);
+  farrow(g,px,py,(tx*at-(px-cx)/(r*sc)*ar)*k,(ty*at-(py-cy)/(r*sc)*ar)*k,"var(--magenta)","a",4,-4);E("circle",{cx:px,cy:py,r:6,fill:"var(--ink)"},g);txt(g,cx+6,cy+16,"r",{"font-style":"italic"});
+  const ro=S.ro2;ro.v.textContent=fx(v,2)+" m/s";ro.at.textContent=fx(at,2)+" m/s²";ro.ar.textContent=fx(ar,2)+" m/s²";ro.a.textContent=fx(Math.hypot(at,ar),2)+" m/s²";ro.T.textContent=w>0.01?fx(2*Math.PI/w,2)+" s":"—"}
+
+/* 3. dumbbell */
+const S3={th:0};
+(function(){const c=$("#c3");slider(c,{id:"m3",key:"m3",min:0.5,max:5,step:0.5,value:2,fmt:v=>v.toFixed(1)+" kg",on:()=>{}});slider(c,{id:"L3",key:"L3",min:0.5,max:2,step:0.1,value:1.2,fmt:v=>v.toFixed(1)+" m",on:()=>{}});
+  slider(c,{id:"ax3",key:"ax3",min:-1.5,max:1.5,step:0.05,value:0,fmt:v=>minus(v.toFixed(2)),on:()=>{}});slider(c,{id:"w3",key:"w3",min:0.2,max:4,step:0.1,value:1.5,fmt:v=>v.toFixed(1)+" rad/s",on:()=>{}});
+  S.ro3=readout(c,[["I","rI3"],["c","rIc3"],["e","rIe3"],["k","rK3"]]);})();
+function draw3(dt){const m=S.m3,L0=S.L3,xa=S.ax3*L0/2,w=S.w3;S3.th+=w*dt*(reduceMotion?0:1);const r1=Math.abs(-L0/2-xa),r2=Math.abs(L0/2-xa);const I=m*r1*r1+m*r2*r2;
+  const g=$("#v3");g.innerHTML="";const cx=220,cy=130,sc=Math.min(150,200/Math.max(L0/2+Math.abs(xa),0.1)*0.55);const c=Math.cos(S3.th),s=Math.sin(S3.th);const P=x=>[cx+(x-xa)*sc*c,cy-(x-xa)*sc*s];
+  E("circle",{cx,cy,r:Math.max(r1,r2)*sc,fill:"none",stroke:"var(--line)","stroke-dasharray":"4 4"},g);const a=P(-L0/2),b=P(L0/2),o=P(0);E("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:"var(--muted)","stroke-width":4},g);
+  const rr=8+m*3;E("circle",{cx:a[0],cy:a[1],r:rr,fill:"var(--blue)"},g);E("circle",{cx:b[0],cy:b[1],r:rr,fill:"var(--red)"},g);E("path",{d:`M${o[0]},${o[1]-6} l-5,9 h10 Z`,fill:"var(--copper)"},g);
+  dotOut(g,cx,cy,7,"var(--magenta)");txt(g,cx+10,cy+22,lang==="ko"?"회전축":"axis",{"font-size":11,fill:"var(--magenta)"});
+  const ro=S.ro3;ro.I.textContent=kgm2(I);ro.c.textContent=kgm2(0.5*m*L0*L0);ro.e.textContent=kgm2(m*L0*L0);ro.k.textContent=Jf(0.5*I*w*w)}
+
+/* 4. shapes */
+const SH={hoop:[(M,R,L)=>M*R*R,"MR²"],ring:[(M,R,L)=>0.5*M*(R*R+(0.6*R)**2),"(1/2)M(R₁² + R₂²), R₁ = 0.6R"],disk:[(M,R,L)=>0.5*M*R*R,"(1/2)MR²"],cylD:[(M,R,L)=>M*L*L/12+M*R*R/4,"(1/12)ML² + (1/4)MR²"],rodC:[(M,R,L)=>M*L*L/12,"(1/12)ML²"],rodE:[(M,R,L)=>M*L*L/3,"(1/3)ML²"],sph:[(M,R,L)=>0.4*M*R*R,"(2/5)MR²"],shell:[(M,R,L)=>2/3*M*R*R,"(2/3)MR²"],hoopD:[(M,R,L)=>0.5*M*R*R,"(1/2)MR²"],slab:[(M,R,L)=>M*(L*L+R*R)/12,"(1/12)M(a² + b²), a = L, b = R"]};
+const S4={th:0,t:0};
+(function(){const c=$("#c4");seg(c,{id:"sh4",key:"shape",options:Object.keys(SH).map(k=>[k,k]),value:"disk",on:()=>{S4.th=0;S4.t=0}});slider(c,{id:"M4",key:"mass",min:0.5,max:10,step:0.5,value:2,fmt:v=>v.toFixed(1)+" kg",on:()=>{S4.t=0}});
+  slider(c,{id:"R4",key:"radius",min:0.05,max:0.5,step:0.01,value:0.2,fmt:v=>v.toFixed(2)+" m",on:()=>{S4.t=0}});slider(c,{id:"L4",key:"L4",min:0.2,max:2,step:0.05,value:1,fmt:v=>v.toFixed(2)+" m",on:()=>{S4.t=0}});
+  button(c,"reset",()=>{S4.th=0;S4.t=0});S.ro4=readout(c,[["f","rF4"],["I","rI4"],["a","rAl4"],["w","rW4"]]);})();
+function draw4(dt){const k=S.sh4,M=S.M4,R=S.R4,L0=S.L4;const I=SH[k][0](M,R,L0);const al=1/I;S4.t+=dt;if(S4.t>2){S4.t=0;S4.th=0}const w=al*S4.t;S4.th=0.5*al*S4.t*S4.t;
+  const g=$("#v4");g.innerHTML="";const cx=220,cy=140;const s=Math.min(260/(2*Math.max(R,L0/2)),200);const ang=S4.th;
+  const axV=()=>{E("line",{x1:cx,x2:cx,y1:20,y2:260,stroke:"var(--magenta)","stroke-width":2,"stroke-dasharray":"6 4"},g)};
+  if(k==="hoop"||k==="ring"||k==="disk"){const Rp=30+R*220;E("ellipse",{cx,cy,rx:Rp,ry:Rp*0.35,fill:k==="disk"?"var(--copper)":"none","fill-opacity":.4,stroke:"var(--copper)","stroke-width":k==="ring"?Rp*0.25:4},g);axV();const mx=cx+Rp*Math.cos(ang),my=cy-Rp*0.35*Math.sin(ang);E("circle",{cx:mx,cy:my,r:5,fill:"var(--ink)"},g)}
+  else if(k==="sph"||k==="shell"){const Rp=30+R*200;E("circle",{cx,cy,r:Rp,fill:k==="sph"?"var(--copper)":"none","fill-opacity":.4,stroke:"var(--copper)","stroke-width":k==="shell"?3:1.5},g);E("ellipse",{cx,cy,rx:Rp,ry:Rp*0.3,fill:"none",stroke:"var(--copper)","stroke-dasharray":"3 3"},g);axV();E("circle",{cx:cx+Rp*Math.cos(ang),cy:cy-Rp*0.3*Math.sin(ang),r:5,fill:"var(--ink)"},g)}
+  else if(k==="hoopD"){const Rp=30+R*200;E("ellipse",{cx,cy,rx:Rp*Math.abs(Math.cos(ang))+2,ry:Rp,fill:"none",stroke:"var(--copper)","stroke-width":4},g);axV()}
+  else{// rods, cylinder about diameter, slab: rotate in plane (top view) about axis perpendicular, axis drawn as ⊙
+    const Lp=40+L0*130,Rp=k==="rodC"||k==="rodE"?5:6+R*90;const off=k==="rodE"?Lp/2:0;const c=Math.cos(ang),sn=Math.sin(ang);
+    const pts=[[-Lp/2+off,-Rp],[Lp/2+off,-Rp],[Lp/2+off,Rp],[-Lp/2+off,Rp]].map(([x,y])=>[cx+x*c-y*sn,cy-(x*sn+y*c)]);E("polygon",{points:pts.map(p=>p.join(",")).join(" "),fill:"var(--copper)","fill-opacity":.45,stroke:"var(--copper)","stroke-width":2},g);dotOut(g,cx,cy,7,"var(--magenta)")}
+  // torque marker: curl in the sense of the applied torque plus the vector along the axis (right-hand rule)
+  const vert=["hoop","ring","disk","sph","shell","hoopD"].includes(k);
+  if(vert){const yt=46,rr=40;let d="";for(let j=0;j<=40;j++){const a2=-0.6+1.9*Math.PI*j/40;d+=(j?"L":"M")+(cx+rr*Math.cos(a2)).toFixed(1)+","+(yt+28-0.35*rr*Math.sin(a2)).toFixed(1)}E("path",{d,fill:"none",stroke:"var(--green)","stroke-width":2.6},g);
+    const a1=-0.6+1.9*Math.PI,a0=a1-0.25;arrow(g,cx+rr*Math.cos(a0),yt+28-0.35*rr*Math.sin(a0),cx+rr*Math.cos(a1),yt+28-0.35*rr*Math.sin(a1),"var(--green)",2.6,9);
+    arrow(g,cx,yt+40,cx,yt-12,"var(--green)",3.5,11);txt(g,cx+10,yt-2,"τ = 1 N·m",{"font-weight":700,fill:"var(--green)","font-size":13,stroke:"var(--panel)","stroke-width":4,"paint-order":"stroke"});
+    const wl=Math.min(80,8+w*1.2);arrow(g,cx-14,cy+70,cx-14,cy+70-wl,"var(--magenta)",3,10);txt(g,cx-20,cy+64-wl/2,"ω",{"text-anchor":"end","font-style":"italic","font-weight":700,fill:"var(--magenta)"})}
+  else{curl(g,cx,cy,34,-0.6,4.6,"var(--green)",2.6);txt(g,cx+40,cy-36,"τ = 1 N·m ⊙",{"font-weight":700,fill:"var(--green)","font-size":13,stroke:"var(--panel)","stroke-width":4,"paint-order":"stroke"});
+    txt(g,cx+40,cy+48,"ω = "+fx(w,1)+" rad/s ⊙",{"font-size":12,fill:"var(--magenta)",stroke:"var(--panel)","stroke-width":4,"paint-order":"stroke"})}
+  txt(g,20,24,t(k),{"font-weight":700});txt(g,20,44,"I = "+SH[k][1],{"font-size":12,fill:"var(--muted)"});
+  const ro=S.ro4;ro.f.textContent=SH[k][1];ro.I.textContent=kgm2(I);ro.a.textContent=fx(al,2)+" rad/s²";ro.w.textContent=rads(2*al)}
+
+/* 5. parallel axis */
+(function(){const c=$("#c5");seg(c,{id:"b5",key:"body5",options:[["rod","rod"],["dsk","dsk"]],value:"rod",on:u5});slider(c,{id:"M5",key:"mass",min:0.5,max:5,step:0.5,value:2,fmt:v=>v.toFixed(1)+" kg",on:u5});
+  slider(c,{id:"d5",key:"dd",min:0,max:1,step:0.01,value:0.3,fmt:v=>v.toFixed(2)+" m",on:u5});S.ro5=readout(c,[["c","rIcm"],["m","rMd"],["I","rI5"],["n","rIn"]]);})();
+function u5(){const rod=S.b5==="rod",M=S.M5,d=S.d5;const L0=1.6,R=0.5;const Ic=rod?M*L0*L0/12:0.5*M*R*R;let In=0;const N=2000;
+  if(rod){for(let k=0;k<N;k++){const x=-L0/2+(k+.5)*L0/N;In+=(x-d)**2*M/N}}else{for(let i=0;i<120;i++)for(let j=0;j<120;j++){const x=-R+(i+.5)*2*R/120,y=-R+(j+.5)*2*R/120;if(x*x+y*y<=R*R)In+=((x-d)**2+y*y)}In*=M/(Math.PI*R*R)*(2*R/120)**2}
+  const g=$("#v5");g.innerHTML="";const cx=180,cy=80,s=110;if(rod)E("rect",{x:cx-L0/2*s,y:cy-6,width:L0*s,height:12,rx:4,fill:"var(--copper)",opacity:.7},g);else E("circle",{cx,cy,r:R*s*0.9,fill:"var(--copper)",opacity:.5},g);
+  const sx=rod?s:s*0.9;E("circle",{cx,cy,r:4,fill:"var(--ink)"},g);txt(g,cx,cy+(rod?24:-4),"com",{"text-anchor":"middle","font-size":11});dotOut(g,cx+d*sx,cy,7,"var(--magenta)");
+  E("line",{x1:cx,x2:cx+d*sx,y1:cy+32,y2:cy+32,stroke:"var(--magenta)"},g);txt(g,cx+d*sx/2,cy+46,"d",{"text-anchor":"middle","font-style":"italic",fill:"var(--magenta)"});
+  const dm=1;const G=graph(g,{l:60,r:420,t0:150,b:280,xmin:0,xmax:dm,ymin:0,ymax:(Ic+M*dm*dm)*1.05,xt:[[0,"0"],[0.5,"0.5"],[1,"1 m"]],yt:[[0,"0"],[Ic,"I_com"]],yl:t("gI5")});
+  let p="";for(let k=0;k<=100;k++){const x=dm*k/100;p+=(k?"L":"M")+G.X(x).toFixed(1)+","+G.Y(Ic+M*x*x).toFixed(1)}E("path",{d:p,fill:"none",stroke:"var(--blue)","stroke-width":2.5},g);E("circle",{cx:G.X(d),cy:G.Y(Ic+M*d*d),r:6,fill:"var(--magenta)"},g);
+  const ro=S.ro5;ro.c.textContent=kgm2(Ic);ro.m.textContent=kgm2(M*d*d);ro.I.textContent=kgm2(Ic+M*d*d);ro.n.textContent=kgm2(In)}
+
+/* 6. torque */
+(function(){const c=$("#c6");slider(c,{id:"F6",key:"Fm",min:1,max:50,step:1,value:20,fmt:v=>v+" N",on:u6});slider(c,{id:"r6",key:"rr",min:0.1,max:1,step:0.05,value:0.6,fmt:v=>v.toFixed(2)+" m",on:u6});
+  slider(c,{id:"p6",key:"phi",min:0,max:360,step:1,value:70,fmt:v=>v+"°",on:u6});S.ro6=readout(c,[["t","rTau"],["a","rArm"],["p","rPar6"],["q","rPerp6"],["v","rVec6"]]);})();
+function u6(){const F=S.F6,r=S.r6,ph=deg(S.p6);const g=$("#v6");g.innerHTML="";const cx=90,cy=150,s=260;const ex=cx+r*s,ey=cy;
+  E("rect",{x:cx-6,y:cy-8,width:r*s+20,height:16,rx:6,fill:"var(--muted)",opacity:.6},g);E("circle",{cx,cy,r:9,fill:"var(--panel)",stroke:"var(--ink)","stroke-width":2},g);
+  const k=3.2;const fx_=F*Math.cos(ph),fy_=F*Math.sin(ph);farrow(g,ex,ey,fx_*k,-fy_*k,"var(--red)","F",6,-4);
+  E("line",{x1:ex,y1:ey,x2:ex+fx_*k,y2:ey,stroke:"var(--red)","stroke-dasharray":"3 3",opacity:.6},g);E("line",{x1:ex+fx_*k,y1:ey,x2:ex+fx_*k,y2:ey-fy_*k,stroke:"var(--red)","stroke-dasharray":"3 3",opacity:.6},g);
+  txt(g,ex+fx_*k/2,ey+16,"F cos φ",{"text-anchor":"middle","font-size":11,fill:"var(--red)"});txt(g,ex+fx_*k+4,ey-fy_*k/2,"F sin φ",{"font-size":11,fill:"var(--red)"});
+  farrow(g,cx,cy+34,r*s,0,"var(--blue)","r",-r*s/2,16);const tau=r*F*Math.sin(ph);if(Math.abs(tau)>0.01){(tau>0?dotOut:crossIn)(g,cx,cy,9,"var(--magenta)");curl(g,cx,cy,30,tau>0?-0.5:0.5,tau>0?1.3:-1.3,"var(--magenta)",2.5)}
+  // lever arm line
+  const ux=Math.cos(ph),uy=Math.sin(ph);const tpar=(cx-ex)*ux;const fxp=ex+ux*tpar,fyp=ey-uy*tpar;E("line",{x1:ex-ux*400,y1:ey+uy*400,x2:ex+ux*400,y2:ey-uy*400,stroke:"var(--red)",opacity:.25},g);E("line",{x1:cx,y1:cy,x2:fxp,y2:fyp,stroke:"var(--green)","stroke-width":2.5},g);
+  txt(g,(cx+fxp)/2+6,(cy+fyp)/2-4,"r sin φ",{"font-size":11,fill:"var(--green)",stroke:"var(--panel)","stroke-width":3,"paint-order":"stroke"});
+  const ro=S.ro6;ro.t.textContent=fx(Math.abs(tau),2)+" N·m";ro.a.textContent=fx(Math.abs(r*Math.sin(ph)),3)+" m";ro.p.textContent=fx(fx_,2)+" N";ro.q.textContent=fx(fy_,2)+" N";ro.v.textContent="(0, 0, "+fx(tau,2)+") N·m "+(Math.abs(tau)<0.01?"":tau>0?"⊙":"⊗")}
+
+/* 7. massive pulley */
+const S7={y:0,v:0,th:0};
+(function(){const c=$("#c7");const re=()=>{S7.y=0;S7.v=0};slider(c,{id:"M7",key:"Mp",min:0,max:10,step:0.5,value:4,fmt:v=>v.toFixed(1)+" kg",on:re});slider(c,{id:"m7",key:"mb",min:0.2,max:5,step:0.1,value:1,fmt:v=>v.toFixed(1)+" kg",on:re});
+  slider(c,{id:"R7",key:"Rp",min:0.05,max:0.3,step:0.01,value:0.15,fmt:v=>v.toFixed(2)+" m",on:re});button(c,"reset",re);S.ro7=readout(c,[["a","rA7"],["t","rT7"],["al","rAl7"],["g","rG7"]]);})();
+function draw7(dt){const M=S.M7,m=S.m7,R=S.R7;const a=2*m*G0/(M+2*m),T=M*m*G0/(M+2*m);S7.v+=a*dt*0.15;S7.y+=S7.v*dt*0.15;S7.th=S7.y/R;if(S7.y>1.1){S7.y=0;S7.v=0}const g=$("#v7");g.innerHTML="";
+  E("line",{x1:120,x2:330,y1:14,y2:14,stroke:"var(--ink)","stroke-width":4},g);const cx=220,cy=70,Rp=20+R*150;E("line",{x1:cx,x2:cx,y1:14,y2:cy,stroke:"var(--ink)","stroke-width":2},g);
+  wheelDraw(g,cx,cy,Rp,-S7.th,"var(--copper)",6);const by=cy+60+S7.y*150;E("line",{x1:cx+Rp,x2:cx+Rp,y1:cy,y2:by,stroke:"var(--ink)","stroke-width":2},g);
+  block(g,cx+Rp-22,by,44,30+m*4,"var(--blue)","m");farrow(g,cx+Rp+30,by+10,0,-T*5,"var(--green)","T",6,0);farrow(g,cx+Rp+30,by+30,0,m*G0*5,"var(--red)","mg",6,10);
+  curl(g,cx,cy,Rp+10,1.2,-0.2,"var(--magenta)",2);txt(g,cx+Rp+16,cy-Rp+4,"α",{"font-style":"italic",fill:"var(--magenta)","font-weight":700});
+  const ro=S.ro7;ro.a.textContent=fx(a,3)+" m/s²";ro.t.textContent=fx(T,2)+" N";ro.al.textContent=fx(a/R,2)+" rad/s²";ro.g.textContent=G0+" m/s²"}
+
+/* 8. work and rotational KE */
+const S8={th:0,w:0,t:0};
+(function(){const c=$("#c8");const re=()=>{S8.th=0;S8.w=0;S8.t=0};slider(c,{id:"I8",key:"Iw",min:0.1,max:5,step:0.1,value:1,fmt:v=>v.toFixed(1)+" kg·m²",on:re});slider(c,{id:"t8",key:"tq",min:0.1,max:3,step:0.1,value:1,fmt:v=>v.toFixed(1)+" N·m",on:re});
+  button(c,"reset",re);S.ro8=readout(c,[["th","rTh8"],["w","rW8"],["k","rK8"],["p","rP8"]]);
+  const tb=$("#ana");const hr=H("tr",{},tb);L.anaH.forEach(h=>{const th=H("th",{},hr);th.innerHTML=h});L.ana.forEach(row=>{const tr=H("tr",{},tb);row.forEach(c2=>{const td=H("td",{},tr);td.innerHTML=c2})})})();
+function draw8(dt){const I=S.I8,tau=S.t8;S8.t+=dt;if(S8.t>6){S8.th=0;S8.w=0;S8.t=0}const al=tau/I;S8.w=al*S8.t;S8.th=0.5*al*S8.t*S8.t;const g=$("#v8");g.innerHTML="";
+  wheelDraw(g,120,115,80,S8.th,"var(--copper)",8);curl(g,120,115,96,-0.6,0.9,"var(--magenta)",3);txt(g,120+98*Math.cos(1),115-98*Math.sin(1)-6,"τ",{"font-weight":700,fill:"var(--magenta)","font-style":"italic"});
+  const W=tau*S8.th,K=0.5*I*S8.w**2;txt(g,250,60,"θ = "+fx(S8.th,2)+" rad",{"font-size":13});txt(g,250,84,"ω = "+fx(S8.w,2)+" rad/s",{"font-size":13});txt(g,250,108,"P = τω = "+fx(tau*S8.w,2)+" W",{"font-size":13,fill:"var(--magenta)"});
+  bars($("#bars8"),[["bW",W,"var(--red)",Jf],["bK",K,"var(--blue)",Jf]],Math.max(1e-6,0.5*I*(al*6)**2));const ro=S.ro8;ro.th.textContent=fx(S8.th,2)+" rad";ro.w.textContent=Jf(W);ro.k.textContent=Jf(K);ro.p.textContent=fx(tau*S8.w,2)+" W"}
+
+/* 9. rolling */
+const S9={x:0,ang:0};
+(function(){const c=$("#c9");seg(c,{id:"vw9",key:"view9",options:[["rot","vRot"],["tr","vTr"],["roll","vRoll"]],value:"roll",on:()=>{}});seg(c,{id:"wh9",key:"wheel",options:[["hoop","whoop"],["disk","wdisk"]],value:"hoop",on:()=>{}});
+  slider(c,{id:"vc9",key:"vc",min:0.5,max:4,step:0.1,value:2,fmt:v=>v.toFixed(1)+" m/s",on:()=>{}});S.ro9=readout(c,[["w","rOm9"],["top","rTop"],["bot","rBot"],["sp","rSplit"]]);})();
+function draw9(dt){const v=S.vc9;const R=0.5,w=v/R;const mode=S.vw9;const trans=mode!=="rot",rot=mode!=="tr";if(!reduceMotion){if(trans)S9.x+=v*dt*0.5;if(rot)S9.ang-=w*dt*0.5}if(S9.x>8.6)S9.x=0;
+  const g=$("#v9");g.innerHTML="";const s=170;const cx=40+(trans?S9.x:4)*s*0.48+ (trans?0:0),cy=200-R*s;E("line",{x1:0,x2:440,y1:200,y2:200,stroke:"var(--ink)","stroke-width":2},g);
+  const X=trans?(-60+((S9.x*90*0.48*1.4)%560)):220;wheelDraw(g,X,cy,R*s,S9.ang,"var(--blue)",8);
+  for(let k=0;k<12;k++){const a=2*Math.PI*k/12;const px=X+R*s*Math.cos(a),py=cy-R*s*Math.sin(a);let vx=0,vy=0;if(trans)vx+=v;if(rot){vx+=w*R*Math.sin(a);vy+=w*R*Math.cos(a)}// clockwise spin, screen y down
+    if(Math.hypot(vx,vy)>0.05)arrow(g,px,py,px+vx*14,py+vy*14,"var(--magenta)",2.2,7)}
+  if(trans)arrow(g,X,cy,X+v*14,cy,"var(--green)",2.5,8);txt(g,X,cy-R*s-8,"T",{"text-anchor":"middle","font-weight":700});txt(g,X+10,214,"P",{"font-weight":700});
+  const hoop=S.wh9==="hoop";const M=1,Ic=hoop?M*R*R:0.5*M*R*R;const Kr=0.5*Ic*w*w,Kt=0.5*M*v*v;bars($("#bars9"),[["bKr",Kr,"var(--red)",Jf],["bKt",Kt,"var(--blue)",Jf]],Kt);
+  const ro=S.ro9;ro.w.textContent=rads(w);ro.top.textContent=fx((trans?v:0)+(rot?v:0),2)+" m/s";ro.bot.textContent=fx(Math.abs((trans?v:0)-(rot?v:0)),2)+" m/s";ro.sp.textContent=hoop?"1 : 1":"1 : 2"}
+
+/* 10. race down a slope */
+const S10={t:0};
+(function(){const c=$("#c10");slider(c,{id:"th10",key:"slope",min:5,max:60,step:1,value:20,fmt:v=>v+"°",on:()=>{S10.t=0}});button(c,"race",()=>{S10.t=0});S.ro10=readout(c,[["b","rAb"],["s","rAs"],["d","rAd"],["h","rAh"],["f","rFs"]]);})();
+function draw10(dt){const th=deg(S.th10);const L0=4;const kinds=[["block",0,"var(--muted)"],["sph",0.4,"var(--green)"],["disk",0.5,"var(--blue)"],["hoop",1,"var(--red)"]];const accs=kinds.map(k=>G0*Math.sin(th)/(1+k[1]));
+  const Tmax=Math.sqrt(2*L0/accs[3]);S10.t+=dt*0.8;if(S10.t>Tmax+1.5)S10.t=0;const g=$("#v10");g.innerHTML="";const Lp=Math.min(380/Math.cos(th),170/Math.sin(th));const A=[30,265-Lp*Math.sin(th)],B=[30+Lp*Math.cos(th),265];
+  E("polygon",{points:`${A} ${B} 30,265`,fill:"var(--grid)",stroke:"var(--ink)","stroke-width":2},g);const nx=Math.sin(th),ny=-Math.cos(th);
+  kinds.forEach(([k,c,col],i)=>{const s=Math.min(L0,0.5*accs[i]*S10.t*S10.t);const u=s/L0;const lane=(3-i)*26;const ox=nx*lane,oy=ny*lane;
+    E("line",{x1:A[0]+ox,y1:A[1]+oy,x2:B[0]+ox,y2:B[1]+oy,stroke:col,opacity:.35,"stroke-width":2},g);const px=A[0]+ox+(B[0]-A[0])*(0.04+u*0.9),py=A[1]+oy+(B[1]-A[1])*(0.04+u*0.9);const r=10;
+    const cx=px+nx*r,cy=py+ny*r;if(k==="block")E("rect",{x:-10,y:-10,width:20,height:20,fill:col,opacity:.75,transform:`translate(${cx},${cy}) rotate(${th*180/Math.PI})`},g);else{wheelDraw(g,cx,cy,r,-s/0.2,col,k==="hoop"?4:6)}
+    txt(g,430,24+i*18,t(k==="block"?"rAb":k==="sph"?"rAs":k==="disk"?"rAd":"rAh").replace(/<[^>]+>/g,"")+": "+(s>=L0?fx(Math.sqrt(2*L0/accs[i]),2)+" s":"…"),{"text-anchor":"end","font-size":11,fill:col})});
+  const ro=S.ro10;ro.b.textContent=fx(accs[0],2)+" m/s²";ro.s.textContent=fx(accs[1],2)+" m/s²";ro.d.textContent=fx(accs[2],2)+" m/s²";ro.h.textContent=fx(accs[3],2)+" m/s²";ro.f.textContent=fx(0.5*accs[2],2)+" N"}
+
+/* 11. conservation of angular momentum */
+const S11={ang:0};
+(function(){const c=$("#c11");slider(c,{id:"r11",key:"arm",min:0.15,max:0.9,step:0.01,value:0.8,fmt:v=>v.toFixed(2)+" m",on:()=>{}});slider(c,{id:"md11",key:"md",min:0.5,max:5,step:0.5,value:3,fmt:v=>v.toFixed(1)+" kg",on:()=>{}});
+  S.ro11=readout(c,[["L","rL11"],["I","rI11"],["w","rW11"],["k","rK11"]]);})();
+function draw11(dt){const Ib=1.5,m=S.md11,r=S.r11;const L0=(Ib+2*m*0.8*0.8)*1.2;const I=Ib+2*m*r*r,w=L0/I;S11.ang+=w*dt*(reduceMotion?0:1);const g=$("#v11");g.innerHTML="";const cx=170,cy=140,s=140;
+  E("circle",{cx,cy,r:0.9*s+12,fill:"none",stroke:"var(--line)","stroke-dasharray":"4 4"},g);E("ellipse",{cx,cy,rx:34,ry:24,fill:"var(--copper)",opacity:.6,transform:`rotate(${-S11.ang*180/Math.PI} ${cx} ${cy})`},g);E("circle",{cx,cy,r:14,fill:"var(--copper)"},g);
+  [0,Math.PI].forEach(o=>{const a=S11.ang+o;const px=cx+r*s*Math.cos(a),py=cy-r*s*Math.sin(a);E("line",{x1:cx,y1:cy,x2:px,y2:py,stroke:"var(--copper)","stroke-width":6,"stroke-linecap":"round"},g);E("circle",{cx:px,cy:py,r:8+m*2,fill:"var(--ink)"},g)});
+  dotOut(g,cx,cy,7,"var(--magenta)");txt(g,cx+10,cy-14,"L",{"font-weight":700,fill:"var(--magenta)"});curl(g,cx,cy,0.9*s+20,0.3,1.2,"var(--magenta)",2.5);
+  const K=0.5*I*w*w,Kmax=L0*L0/(2*(Ib+2*m*0.15*0.15));bars($("#bars11"),[["bL",L0,"var(--magenta)",x=>fx(x,2)+" kg·m²/s"],["bKs",K,"var(--blue)",Jf]],Math.max(L0,Kmax));
+  const ro=S.ro11;ro.L.textContent=fx(L0,2)+" kg·m²/s";ro.I.textContent=fx(I,3)+" kg·m²";ro.w.textContent=rads(w);ro.k.textContent=Jf(K)}
+
+/* 12. gyroscope */
+const S12={phi:0,spin:0};
+(function(){const c=$("#c12");slider(c,{id:"w12",key:"spin",min:20,max:200,step:5,value:80,fmt:v=>v+" rad/s",on:()=>{}});slider(c,{id:"r12",key:"armr",min:0.05,max:0.25,step:0.01,value:0.1,fmt:v=>v.toFixed(2)+" m",on:()=>{}});
+  slider(c,{id:"M12",key:"Mg",min:0.1,max:2,step:0.1,value:0.5,fmt:v=>v.toFixed(1)+" kg",on:()=>{}});S.ro12=readout(c,[["L","rL12"],["t","rTq"],["O","rOm"],["P","rPer"],["q","rRat"]]);})();
+function draw12(dt){const w=S.w12,r=S.r12,M=S.M12,Rw=0.15;const I=0.5*M*Rw*Rw;const L0=I*w,tau=M*G0*r,Om=tau/L0;if(!reduceMotion){S12.phi+=Om*dt;S12.spin+=dt*12}
+  const g=$("#v12");g.innerHTML="";const O=[230,110];const P=(x,y,z)=>[O[0]+(y-0.55*x)*420,O[1]-(z-0.35*x)*420];// oblique: x toward viewer-left, y right, z up
+  const sc=1;E("line",{x1:O[0],x2:O[0],y1:O[1],y2:O[1]+170,stroke:"var(--muted)","stroke-width":6},g);E("ellipse",{cx:O[0],cy:O[1]+175,rx:40,ry:10,fill:"var(--muted)",opacity:.5},g);
+  const ax=[Math.cos(S12.phi),Math.sin(S12.phi),0];const C=ax.map(v=>v*r);const pc=P(...C);E("line",{x1:O[0],y1:O[1],x2:pc[0],y2:pc[1],stroke:"var(--ink)","stroke-width":3},g);
+  // precession circle
+  let d="";for(let k=0;k<=60;k++){const a=2*Math.PI*k/60;const q=P(r*Math.cos(a),r*Math.sin(a),0);d+=(k?"L":"M")+q[0].toFixed(1)+","+q[1].toFixed(1)}E("path",{d,fill:"none",stroke:"var(--magenta)","stroke-dasharray":"4 4",opacity:.6},g);
+  // wheel: circle in plane perpendicular to axis
+  const u=[-ax[1],ax[0],0],v2=[0,0,1];let wd="";for(let k=0;k<=48;k++){const a=2*Math.PI*k/48;const q=P(C[0]+Rw*(Math.cos(a)*u[0]+Math.sin(a)*v2[0]),C[1]+Rw*(Math.cos(a)*u[1]+Math.sin(a)*v2[1]),C[2]+Rw*(Math.cos(a)*u[2]+Math.sin(a)*v2[2]));wd+=(k?"L":"M")+q[0].toFixed(1)+","+q[1].toFixed(1)}
+  E("path",{d:wd+"Z",fill:"var(--blue)","fill-opacity":.25,stroke:"var(--blue)","stroke-width":3},g);for(let k=0;k<4;k++){const a=S12.spin+k*Math.PI/2;const q=P(C[0]+Rw*(Math.cos(a)*u[0]),C[1]+Rw*(Math.cos(a)*u[1]),C[2]+Rw*Math.sin(a));E("line",{x1:pc[0],y1:pc[1],x2:q[0],y2:q[1],stroke:"var(--blue)","stroke-width":1.4},g)}
+  const Lt=P(...C.map((v,i)=>v+ax[i]*0.2));arrow(g,pc[0],pc[1],Lt[0],Lt[1],"var(--magenta)",3,10);txt(g,Lt[0]+6,Lt[1]-4,"L",{"font-weight":700,fill:"var(--magenta)"});
+  const tdir=[-ax[1],ax[0],0];const Tt=P(...C.map((v,i)=>v+tdir[i]*0.12));arrow(g,pc[0],pc[1],Tt[0],Tt[1],"var(--green)",3,10);txt(g,Tt[0]+6,Tt[1]+12,"τ = dL/dt",{"font-weight":700,fill:"var(--green)","font-size":12});
+  arrow(g,pc[0],pc[1],pc[0],pc[1]+50,"var(--red)",2.5,9);txt(g,pc[0]+6,pc[1]+56,"Mg",{"font-weight":700,fill:"var(--red)"});E("circle",{cx:O[0],cy:O[1],r:5,fill:"var(--ink)"},g);txt(g,O[0]-14,O[1]-6,"O",{"font-weight":700});
+  const ro=S.ro12;ro.L.textContent=fx(L0,4)+" kg·m²/s";ro.t.textContent=fx(tau,3)+" N·m";ro.O.textContent=rads(Om);ro.P.textContent=fx(2*Math.PI/Om,2)+" s";ro.q.textContent=fx(w/Om,0)}
+
+/* loop */
+function applyText(){document.querySelectorAll("[data-i18n]").forEach(el=>{el.innerHTML=t(el.dataset.i18n)})}
+let last=performance.now();
+function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;NOW+=dt;anims.forEach(f=>f(dt));draw1(dt);draw2(dt);draw3(dt);draw4(dt);draw7(dt);draw8(dt);draw9(dt);draw10(dt);draw11(dt);draw12(dt);requestAnimationFrame(frame)}
+applyText();u5();u6();requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -357,14 +357,14 @@ const rads=x=>fx(x,2)+" rad/s",Jf=x=>fx(x,2)+" J",kgm2=x=>fx(x,4)+" kg·m²";
 function wheelDraw(g,cx,cy,R,ang,col="var(--blue)",spokes=8){E("circle",{cx,cy,r:R,fill:"var(--grid)",stroke:col,"stroke-width":4},g);for(let k=0;k<spokes;k++){const a=ang+2*Math.PI*k/spokes;E("line",{x1:cx,y1:cy,x2:cx+R*Math.cos(a),y2:cy-R*Math.sin(a),stroke:col,"stroke-width":1.4,opacity:.6},g)}E("circle",{cx,cy,r:3.5,fill:"var(--ink)"},g)}
 function curl(g,cx,cy,r,a0,a1,col,w=2.2){if(Math.abs(a1-a0)<0.05)return;let d="";const N=30;for(let k=0;k<=N;k++){const a=a0+(a1-a0)*k/N;d+=(k?"L":"M")+(cx+r*Math.cos(a)).toFixed(1)+","+(cy-r*Math.sin(a)).toFixed(1)}E("path",{d,fill:"none",stroke:col,"stroke-width":w},g);const a=a1,da=Math.sign(a1-a0)*0.25;arrow(g,cx+r*Math.cos(a-da),cy-r*Math.sin(a-da),cx+r*Math.cos(a),cy-r*Math.sin(a),col,w,9)}
 
-/* hero: rolling wheel; at four points the velocity is split into translation (v_com) + tangential (ωR) */
+/* hero: rolling wheel; at eight points the velocity is split into translation (v_com) + tangential (ωR) */
 (function(){const g=$("#hero");const R=62;let x=-80,ang=0;const v=110,k=0.36;
   anims.push(dt=>{if(reduceMotion&&x>-80)return;x+=v*dt;ang-=v/R*dt;if(x>1080)x=-80;g.innerHTML="";const cy=184-R;E("line",{x1:0,x2:1000,y1:184,y2:184,stroke:"var(--ink)","stroke-width":2},g);
     wheelDraw(g,x,cy,R,ang,"var(--muted)");
     for(let j=0;j<8;j++){const a=ang+2*Math.PI*j/8+Math.PI/2;const px=x+R*Math.cos(a),py=cy-R*Math.sin(a);const tx=v*Math.sin(a),ty=v*Math.cos(a);const vx=v+tx,vy=ty;
-      const pick=j%2===0;// four of the eight points (they turn with the wheel) show both components
-      if(pick){arrow(g,px,py,px+v*k,py,"var(--green)",2.2,7);if(Math.hypot(tx,ty)>3)arrow(g,px+v*k,py,px+v*k+tx*k,py+ty*k,"var(--blue)",2.2,7)}
-      if(Math.hypot(vx,vy)>4)arrow(g,px,py,px+vx*k,py+vy*k,"var(--magenta)",pick?3:2.2,8)}
+      // every point shows both components, drawn tip to tail, plus their sum
+      arrow(g,px,py,px+v*k,py,"var(--green)",2.2,7);if(Math.hypot(tx,ty)>3)arrow(g,px+v*k,py,px+v*k+tx*k,py+ty*k,"var(--blue)",2.2,7);
+      if(Math.hypot(vx,vy)>4)arrow(g,px,py,px+vx*k,py+vy*k,"var(--magenta)",3,8)}
     E("circle",{cx:x,cy:cy,r:3.5,fill:"var(--ink)"},g);
     const lx=20,ly=22;const items=lang==="ko"?[["var(--green)","병진 성분 v_com"],["var(--blue)","접선 성분 ωR"],["var(--magenta)","합 v = v_com + ωR"]]:[["var(--green)","translational v_com"],["var(--blue)","tangential ωR"],["var(--magenta)","total v = v_com + ωR"]];
     items.forEach(([c,tx2],i)=>{arrow(g,lx,ly+i*20,lx+26,ly+i*20,c,2.6,7);txt(g,lx+34,ly+i*20+5,tx2,{"font-size":13,fill:c,"font-weight":700})})})})();

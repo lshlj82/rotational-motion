@@ -56,7 +56,7 @@ The header animation shows a rolling wheel. At four points on the rim, the veloc
 
 - **Animation speed:** Some animations are slowed down so the motion is easy to follow. The readouts always show the real values.
 - **Gyroscope:** The wheel is modeled as a uniform disk of radius 0.15 m spinning about its axle. The precession formula assumes $\omega \gg \Omega$.
-- **Display:** The pages follow the system's light or dark setting. Under `prefers-reduced-motion`, the continuously spinning displays stand still.
+- **Display:** The pages follow the system's light or dark setting, and a sun/moon button in the top-right corner switches by hand, and the choice is remembered across pages. Under `prefers-reduced-motion`, the continuously spinning displays stand still.
 
 ## Credits
 
